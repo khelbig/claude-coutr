@@ -65,7 +65,9 @@
       "Bash(psql:*)",
       "Bash(git clean:*)",
       "Bash(git stash:*)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "Bash(yarn --version)",
+      "Bash(yarn install:*)"
     ],
     "deny": []
   }
