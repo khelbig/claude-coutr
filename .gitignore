@@ -1,0 +1,23 @@
+# Ignore all subdirectories (they have their own git repos)
+/admin/
+/operations/
+/shopify/
+/firebase-catalog/
+
+# But keep .claude directory
+!/.claude/
+!/.claude/**
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Sensitive files
+*.json
+*.txt
+*.env
+*.env.*
+
+# Keep important markdown files
+!CLAUDE.md
+!*.md
