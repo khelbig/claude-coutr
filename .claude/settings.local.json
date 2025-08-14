@@ -69,6 +69,7 @@
       "Bash(yarn --version)",
       "Bash(yarn install:*)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }
