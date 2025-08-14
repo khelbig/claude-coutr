@@ -67,7 +67,8 @@
       "Bash(git stash:*)",
       "Bash(npx:*)",
       "Bash(yarn --version)",
-      "Bash(yarn install:*)"
+      "Bash(yarn install:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
