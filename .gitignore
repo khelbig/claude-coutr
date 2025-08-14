@@ -3,6 +3,7 @@
 /operations/
 /shopify/
 /firebase-catalog/
+/aws-orders/
 
 # But keep .claude directory
 !/.claude/
