@@ -14,6 +14,13 @@ This file provides comprehensive guidance to Claude Code (claude.ai/code) when w
 - Vendor configuration updates go to Firestore ONLY
 - DO NOT update Algolia indices under any circumstances
 
+### ALWAYS USE ALGOLIA FOR LOOKUPS
+**CRITICAL**: When looking up orders or returns:
+- Orders are in Algolia's `shopify_orders` index - NEVER look in Firestore's Orders collection
+- Returns are in Algolia's `firebase_returns` index for listing/searching
+- Use `order_number` field to search for orders in Algolia (NOT orderId or shopify_order_id)
+- Match line items by SKU when correlating returns with orders
+
 ## Repository Architecture Overview
 
 **IMPORTANT**: This is NOT a monorepo. Each subdirectory is its own separate Git repository with independent version control.
@@ -532,5 +539,16 @@ const StyledButton = styled(Button)<{ $variant: 'primary' | 'secondary' }>(
 - Queue concurrency limits
 - Redis caching through Bull
 - Lazy loading in frontend components
+
+## Development Workflow Memories
+
+- Always look at how admin talks to operations app before coding
+- Any data put into Firestore must also be created in PostgreSQL
+- Never put Claude in commit messages
+- Each subdirectory is a separate Git repository
+- Use descriptive commit messages focusing on what changed
+- Never bypass authentication for "testing" - test properly with real authentication flows
+- When asking for data structures, ask the user directly for sample records from Algolia
+- Product images in Algolia can be in `gallery` field as array OR object with color keys
 
 This documentation represents the complete architectural knowledge of the Coutr e-commerce platform, ensuring consistent development practices across all repositories and services.
