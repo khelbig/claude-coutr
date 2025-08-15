@@ -39,11 +39,11 @@ This file provides comprehensive guidance to Claude Code (claude.ai/code) when w
 The Coutr platform implements sophisticated **microservices architecture** with these key patterns:
 
 #### 1. **Microservices Architecture**
-- **Admin Dashboard**: Pure presentation layer (Next.js 14.1.0)
-- **Operations Service**: Business logic and data orchestration (Express + TypeScript)
-- **Shopify Theme**: Customer-facing e-commerce frontend (Liquid templates)
-- **Firebase Catalog**: Legacy data synchronization and import service
-- **AWS Orders**: Serverless Lambda functions for webhook processing
+- **Admin Dashboard**: Pure presentation layer (Next.js 14.1.0) - React-based SPA
+- **Operations Service**: Business logic and data orchestration (Express 5.1.0 + TypeScript 5.8.3)
+- **Shopify Theme**: Customer-facing e-commerce frontend (Liquid templates + Web Components)
+- **Firebase Catalog**: Legacy data synchronization service (Node.js + cron jobs)
+- **AWS Orders**: Serverless Lambda functions for webhook processing (SAM + SQS)
 
 #### 2. **Domain-Driven Design (DDD)**
 Each repository follows domain separation:
@@ -51,13 +51,15 @@ Each repository follows domain separation:
 - **Operations Domain**: Order processing, webhook handling, data synchronization, business rules
 - **Storefront Domain**: Product display, cart, checkout, customer experience
 - **Data Sync Domain**: External integrations, product imports, API connectors
+- **Serverless Domain**: Event processing, order routing, static IP management
 
 #### 3. **Event-Driven Architecture**
 - Shopify webhooks → Operations service (order events, fulfillment events)
-- Bull queues (Redis) for async processing
+- Bull/BullMQ queues (Redis) for async processing
 - EventEmitter pattern for internal communication
-- Email workflow automation triggered by business events
+- Email workflow automation triggered by 25+ business events
 - Audit logging for all critical operations
+- AWS SQS for Lambda function communication
 
 #### 4. **Clean Architecture Principles**
 **Operations Service** demonstrates clean architecture:
@@ -68,7 +70,7 @@ Each repository follows domain separation:
 - **External Interfaces**: REST APIs, database connections, third-party integrations
 
 #### 5. **Dependency Injection Pattern**
-Operations service uses InversifyJS container:
+Operations service uses InversifyJS container with singleton scope:
 ```typescript
 @injectable()
 export class VendorService {
@@ -78,6 +80,33 @@ export class VendorService {
   ) {}
 }
 ```
+
+#### 6. **Component-Based Architecture (Admin Dashboard)**
+- **Provider Pattern**: Multiple nested context providers (Auth, Settings, Theme, I18n)
+- **Compound Components**: Complex UI components with sub-components
+- **Render Props**: Dynamic component composition
+- **Custom Hooks**: Reusable business logic (`useUser`, `useSettings`, etc.)
+
+#### 7. **Web Components Pattern (Shopify Theme)**
+- **Custom Elements**: HTML elements extending HTMLElement
+- **Shadow DOM**: Encapsulated styling and behavior
+- **Event Delegation**: Efficient event handling for dynamic content
+- **Progressive Enhancement**: JavaScript enhances HTML functionality
+
+#### 8. **Repository Pattern**
+- **Operations Service**: TypeORM repositories for data access
+- **Admin Dashboard**: API client abstraction layer
+- **Consistent Interface**: CRUD operations across different data sources
+
+#### 9. **Factory Pattern**
+- **Webhook Handlers**: Factory creates specific handlers based on event type
+- **Email Templates**: Template factory for different email categories
+- **Integration Services**: Factory pattern for vendor integrations
+
+#### 10. **Observer Pattern**
+- **Event Emitters**: Node.js EventEmitter for internal events
+- **WebSocket**: Real-time updates for Google Ads metrics
+- **Mutation Observers**: Shopify theme DOM change detection
 
 ## Admin Dashboard Architecture (`/admin`)
 
@@ -237,34 +266,58 @@ shopify theme check   # Lint theme files
 ### Technology Stack (Legacy Service)
 - **Runtime**: Node.js with vanilla JavaScript (no TypeScript)
 - **Database**: Firebase Admin 12.1.1
-- **APIs**: Multiple e-commerce integrations
+- **APIs**: Multiple e-commerce integrations  
 - **AI**: OpenAI 4.50.0 for content generation
 - **Scheduling**: node-cron 4.0.7
+- **External APIs**: 15+ vendor integrations
 
 ### Service Architecture
 ```
 src/
+├── config/                 # Environment and Firebase config
+├── express/                # Express server setup
 ├── services/               # Integration services
 │   ├── shopify/           # Shopify product sync
 │   ├── algolia/           # Search index management
 │   ├── link2lux/          # Vendor integration
 │   ├── medusa/            # Medusa platform sync
-│   └── ai/                # OpenAI integrations
+│   ├── ai/                # OpenAI integrations
+│   ├── atelier/           # Atelier vendor sync
+│   ├── channelAdvisor/    # Channel Advisor integration
+│   ├── dcChannels/        # DC Channels sync
+│   ├── eversell/          # Eversell marketplace
+│   ├── fashionTamers/     # Fashion Tamers integration
+│   ├── gAndB/             # G&B vendor sync
+│   ├── googleMerchant/    # Google Merchant feed
+│   ├── impact/            # Impact integration
+│   ├── laravel/           # Laravel API sync
+│   ├── wooCommerce/       # WooCommerce integration
+│   └── xMag/              # xMag vendor sync
 └── utils/                 # Shared utilities
 ```
 
+### Key Features
+- **Scheduled Syncs**: Cron-based product catalog updates
+- **Multi-Vendor Support**: 15+ different vendor API integrations
+- **AI Enhancement**: Automatic title and translation generation
+- **Data Transformation**: CSV/FTP to Firestore/Algolia pipeline
+- **Legacy Codebase**: Vanilla JS without modern build tools
+
 ### Key Integrations
-- Multiple vendor APIs (Atelier, Channel Advisor, Link2Lux)
+- Multiple vendor APIs (Atelier, Channel Advisor, Link2Lux, Fashion Tamers, etc.)
 - Shopify GraphQL and REST APIs
 - Google Sheets for data management
 - FTP/CSV imports from various sources
+- OpenAI for content generation
 
 ## AWS Orders Service (`/aws-orders`)
 
 ### Technology Stack
-- **Runtime**: AWS Lambda with Node.js (ES modules)
+- **Runtime**: AWS Lambda with Node.js 18.x (ES modules)
 - **Infrastructure**: AWS SAM (Serverless Application Model)
 - **API Gateway**: REST API endpoints for webhooks
+- **Queue**: AWS SQS for message processing
+- **VPC**: Custom VPC with NAT Gateway for static IP
 - **Database**: Firestore via Google Cloud SDK
 - **Search**: Algolia for order indexing
 
@@ -276,16 +329,38 @@ src/lambdas/
 ├── processSupplierOrderEvent.mjs   # Supplier order handling
 ├── processLink2LuxProductUpdateEvent.mjs  # Link2Lux sync
 ├── processPixelUpdateEvent.mjs     # Tracking pixel updates
+├── processShopifyPixelUpdateEvent.mjs  # Shopify pixel processing
+├── testStaticIp.mjs                # Static IP testing
 └── shared/                          # Shared utilities
     ├── apiClients.mjs              # External API clients
     ├── database.mjs                # Database operations
-    └── shopifyOperations.mjs      # Shopify-specific logic
+    ├── shopifyOperations.mjs      # Shopify-specific logic
+    └── utils.mjs                   # Common utilities
 ```
 
-### API Endpoints
-- `/link2lux` - Link2Lux webhook receiver
-- `/coutr` - General webhook endpoint
-- Additional endpoints for products and orders (configurable)
+### Infrastructure Components
+- **VPC Setup**: Private subnets with NAT Gateway for static IP
+- **SQS Queues**: 
+  - `productUpdateSqsQuery` - Product update processing
+  - `shopifyProductUpdateSqsQuery` - Shopify product updates
+  - `orderUpdateSqsQuery` - Order update processing
+  - `shopifyOrderEventSqs` - Shopify order events
+  - `processPixelUpdateEventSqsQueue` - Pixel tracking
+- **API Gateway Endpoints**:
+  - `/link2lux` - Link2Lux webhook receiver
+  - `/coutr` - General webhook endpoint
+  - `/coutr/pixel.gif` - Tracking pixel endpoint
+  - `/test/static-ip` - Static IP verification
+
+### Vendor Integrations (Hardcoded in SAM template)
+- Link2Lux API
+- Atelier Hub
+- Fashion Tamers
+- Eversell (AMR, Spazio Bra)
+- DC Channels
+- Monti/Duomo xMag
+- Eleonora Bonucci
+- BeeStore SOAP service
 
 ### Deployment
 ```bash
@@ -295,6 +370,13 @@ sam deploy --guided
 # Local testing
 sam local start-api
 ```
+
+### Key Architectural Decisions
+- **Serverless First**: All processing via Lambda functions
+- **Queue-Based Processing**: SQS for reliable message handling
+- **Static IP Support**: VPC with NAT for IP whitelisting
+- **Multi-Vendor Router**: Single entry point routes to multiple vendors
+- **Environment Variables**: All credentials in SAM template (security concern)
 
 ## Data Architecture
 
@@ -323,11 +405,37 @@ sam local start-api
 
 ## Integration Points
 
+### Service Communication Architecture
+
+#### Inter-Service Communication Patterns
+1. **Admin → Operations**: REST API proxy pattern
+   - Admin makes API calls to its own `/api/*` endpoints
+   - These endpoints proxy to Operations service
+   - Authentication token passed in headers
+   - Response transformation and error handling
+
+2. **Operations → External Services**: Direct integration
+   - Shopify GraphQL/REST APIs
+   - SendGrid API for email
+   - Google Cloud Vision for OCR
+   - Algolia for search indexing
+
+3. **Shopify → AWS Lambda → Operations**: Webhook flow
+   - Shopify sends webhooks to AWS API Gateway
+   - Lambda functions process and route to SQS
+   - Some events forwarded to Operations service
+
+4. **Firebase Catalog → External APIs**: Scheduled sync
+   - Cron jobs trigger regular syncs
+   - Direct API calls to vendor systems
+   - Updates written to Firestore/Algolia
+
 ### Shopify Webhooks → Operations Service
 - Order creation/update webhooks
 - Fulfillment webhooks
 - Return webhooks
 - Product updates
+- Refund processing
 
 ### Operations Service → Admin Dashboard
 All data operations go through Operations service APIs:
@@ -336,6 +444,9 @@ All data operations go through Operations service APIs:
 - `/api/admin/vendor-crm/*` - CRM operations
 - `/api/admin/shipping-invoices/*` - Shipping invoice CRUD
 - `/api/ap-invoices/*` - AP invoice processing
+- `/api/admin/orders/*` - Order management with enriched data
+- `/api/permissions/*` - Dynamic permission checking
+- `/api/google-ads/*` - Google Ads campaign management
 
 ### External Integrations
 - **SendGrid**: Email delivery with webhook tracking
@@ -343,6 +454,14 @@ All data operations go through Operations service APIs:
 - **AWS S3**: Document storage with pre-signed URLs
 - **Shopify APIs**: GraphQL and REST for e-commerce
 - **Google Sheets**: Data synchronization
+- **Google Ads API**: Campaign management and optimization
+- **Multiple Vendor APIs**: Link2Lux, Atelier, Fashion Tamers, etc.
+
+### Real-time Communication
+- **WebSocket**: Google Ads metrics streaming
+- **Server-Sent Events (SSE)**: Event stream for audit logs
+- **Bull Board**: Queue monitoring dashboard
+- **Webhook Callbacks**: Async event notifications
 
 ## Environment Variables
 
@@ -514,6 +633,66 @@ Creates batch payment invoices combining:
 6. **Clean Architecture**: Dependency injection, separation of layers
 7. **Type Safety**: Strict TypeScript across admin and operations
 8. **No Direct Access**: Admin never accesses databases directly
+
+## Architectural Best Practices & Patterns
+
+### SOLID Principles Implementation
+- **Single Responsibility**: Each service class handles one domain concern
+- **Open/Closed**: Services extensible via dependency injection
+- **Liskov Substitution**: Interface-based programming with TypeScript
+- **Interface Segregation**: Small, focused interfaces for services
+- **Dependency Inversion**: High-level modules depend on abstractions
+
+### Data Access Patterns
+- **Repository Pattern**: Consistent data access layer
+- **Unit of Work**: TypeORM transactions for data consistency
+- **Query Object**: Complex queries encapsulated in service methods
+- **Data Mapper**: TypeORM entities separate from business logic
+
+### API Design Patterns
+- **RESTful Design**: Resource-based URLs with HTTP verbs
+- **Proxy Pattern**: Admin app proxies to operations service
+- **API Gateway**: Operations service acts as gateway to multiple data sources
+- **Circuit Breaker**: Error handling with fallback mechanisms
+
+### Frontend Patterns (Admin Dashboard)
+- **Container/Presentational**: Smart vs dumb components
+- **Higher-Order Components**: Authentication and permission wrappers
+- **Render Props**: Flexible component composition
+- **Compound Components**: Complex UI with multiple sub-components
+- **Controlled Components**: Form state management with React Hook Form
+
+### Performance Patterns
+- **Lazy Loading**: Dynamic imports for code splitting
+- **Memoization**: React.memo and useMemo for optimization
+- **Virtual Scrolling**: Large lists with react-window
+- **Connection Pooling**: Database connection reuse
+- **Queue Throttling**: Rate limiting for external APIs
+
+### Security Patterns
+- **Defense in Depth**: Multiple layers of security
+- **Principle of Least Privilege**: Role-based access control
+- **Input Validation**: Zod schemas and class-validator
+- **Sanitization**: XSS prevention in user inputs
+- **Secure by Default**: Environment-based configuration
+
+### Testing Patterns (Implied Architecture)
+- **Unit Testing**: Jest for isolated component testing
+- **Integration Testing**: API endpoint testing
+- **E2E Testing**: Full workflow validation
+- **Mocking**: Service dependencies mocked for testing
+
+### Deployment Patterns
+- **Infrastructure as Code**: AWS SAM for Lambda deployment
+- **Environment Configuration**: .env files for different environments
+- **Blue-Green Deployment**: Shopify theme versioning
+- **Containerization Ready**: Docker-compatible Node.js services
+
+### Code Organization Patterns
+- **Feature-Based Structure**: Modules organized by business domain
+- **Barrel Exports**: Index files for clean imports
+- **Shared Utilities**: Common code in shared directories
+- **Configuration as Code**: Settings in JSON/TypeScript files
 
 ## Important Implementation Notes
 
