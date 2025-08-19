@@ -68,7 +68,12 @@
       "Bash(npx:*)",
       "Bash(yarn --version)",
       "Bash(yarn install:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(NODE_TLS_REJECT_UNAUTHORIZED=0 npx ts-node scripts/check-customer-counts.ts)",
+      "Bash(NODE_TLS_REJECT_UNAUTHORIZED=0 npx ts-node scripts/check-duplicate-customers.ts)",
+      "Bash(NODE_TLS_REJECT_UNAUTHORIZED=0 npx ts-node scripts/delete-pg-customers.ts)",
+      "Bash(NODE_TLS_REJECT_UNAUTHORIZED=0 npx ts-node scripts/diagnose-pg-failures.ts)",
+      "Bash(NODE_TLS_REJECT_UNAUTHORIZED=0 npx ts-node scripts/clean-broken-firestore-customers.ts)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
