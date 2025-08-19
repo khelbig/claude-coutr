@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing & Fulfillment Times</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Modal Container */
+        .modal-container {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 680px;
+            max-height: 85vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: scale(1) translateY(0);
+        }
+
+        /* Modal Header */
+        .modal-header {
+            padding: 24px 24px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(to bottom, #fafafa, #f9fafb);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
+        }
+
+        /* Modal Body */
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: calc(85vh - 140px);
+        }
+
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 4px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Preview Card */
+        .preview-card {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+        }
+
+        .preview-card::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            top: -100px;
+            right: -50px;
+        }
+
+        .preview-title {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .preview-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .preview-label {
+            font-size: 0.75rem;
+            opacity: 0.85;
+            margin-bottom: 4px;
+        }
+
+        .preview-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        /* Form Sections */
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* Time Cards */
+        .time-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 640px) {
+            .time-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .time-card {
+            background: linear-gradient(to bottom, #faf5ff, #f3e8ff);
+            border: 1.5px solid #e9d5ff;
+            border-radius: 10px;
+            padding: 16px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .time-card:hover {
+            border-color: #c4b5fd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
+        }
+
+        .time-card.selected {
+            background: linear-gradient(to bottom, #f3e8ff, #ede9fe);
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .time-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .time-card-icon {
+            font-size: 1.25rem;
+        }
+
+        .time-card-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #4c1d95;
+        }
+
+        /* Form Fields */
+        .form-field {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: #ffffff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            color: #111827;
+            transition: all 0.2s;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .form-input:hover {
+            border-color: #d1d5db;
+        }
+
+        .form-input:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 12px;
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            font-size: 0.875rem;
+            font-weight: 500;
+            pointer-events: none;
+        }
+
+        /* Slider Input */
+        .slider-container {
+            margin-bottom: 20px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .slider-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #7c3aed;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e7eb;
+            outline: none;
+            -webkit-appearance: none;
+            position: relative;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #7c3aed;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 8px rgba(124, 58, 237, 0.3);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #7c3aed;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+
+        /* Toggle Switch */
+        .toggle-field {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: #f9fafb;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .toggle-field:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+        .toggle-field.active {
+            background: #f3f0ff;
+            border-color: #c4b5fd;
+        }
+
+        .toggle-info {
+            flex: 1;
+            margin-right: 16px;
+        }
+
+        .toggle-label {
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .toggle-description {
+            font-size: 0.8125rem;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #d1d5db;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+        }
+
+        .toggle-switch.active {
+            background: #7c3aed;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(20px);
+        }
+
+        /* Info Box */
+        .info-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        .info-icon {
+            color: #3b82f6;
+            font-size: 16px;
+            margin-top: 2px;
+        }
+
+        .info-text {
+            font-size: 0.8125rem;
+            color: #1e40af;
+            line-height: 1.5;
+        }
+
+        /* Multi-select Dropdown */
+        .multi-select-wrapper {
+            position: relative;
+        }
+
+        .multi-select {
+            width: 100%;
+            padding: 12px 14px;
+            background: #ffffff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            color: #111827;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .multi-select:hover {
+            border-color: #d1d5db;
+        }
+
+        .multi-select.active {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        #selected-calendars {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #111827;
+        }
+
+        .dropdown-arrow {
+            color: #6b7280;
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+        }
+
+        .multi-select.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .multi-select-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-height: 240px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .multi-select-dropdown.show {
+            display: block;
+            animation: dropdownSlide 0.2s ease;
+        }
+
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 0.875rem;
+        }
+
+        .checkbox-option:hover {
+            background: #f9fafb;
+        }
+
+        .checkbox-option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: #7c3aed;
+        }
+
+        .checkbox-option span {
+            color: #374151;
+        }
+
+        .multi-select-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .multi-select-dropdown::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 3px;
+        }
+
+        .multi-select-dropdown::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+
+        /* Custom Calendar Section */
+        .custom-calendar-box {
+            background: linear-gradient(to bottom, #faf5ff, #f3e8ff);
+            border: 1.5px solid #e9d5ff;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .custom-calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .add-date-btn {
+            padding: 6px 12px;
+            background: #7c3aed;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.813rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-date-btn:hover {
+            background: #6d28d9;
+            transform: translateY(-1px);
+        }
+
+        .custom-dates-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .custom-date-item {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: white;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #e9d5ff;
+        }
+
+        .date-input {
+            flex: 0 0 140px;
+            padding: 6px 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            font-size: 0.813rem;
+            font-family: inherit;
+        }
+
+        .date-name-input {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            font-size: 0.813rem;
+            font-family: inherit;
+        }
+
+        .remove-date-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: #ef4444;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .remove-date-btn:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
+        /* Checkbox Group */
+        .checkbox-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .inline-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            background: #f9fafb;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .inline-checkbox:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+        .inline-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #7c3aed;
+        }
+
+        .inline-checkbox input[type="checkbox"]:checked + span {
+            color: #7c3aed;
+            font-weight: 500;
+        }
+
+        .inline-checkbox span {
+            font-size: 0.875rem;
+            color: #374151;
+            user-select: none;
+        }
+
+        /* Modal Footer */
+        .modal-footer {
+            padding: 20px 24px;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8125rem;
+            color: #6b7280;
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-cancel {
+            background: white;
+            color: #374151;
+            border: 1.5px solid #e5e7eb;
+        }
+
+        .btn-cancel:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        .btn-save {
+            background: #7c3aed;
+            color: white;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-save:hover {
+            background: #6d28d9;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+        }
+
+        .btn-save:active {
+            transform: scale(0.98);
+        }
+
+        /* Demo Button */
+        .demo-button {
+            padding: 14px 28px;
+            background: white;
+            color: #7c3aed;
+            border: 2px solid #7c3aed;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-button:hover {
+            background: #7c3aed;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .demo-button:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Button -->
+    <button class="demo-button" onclick="openModal()">Open Processing Times Modal</button>
+
+    <!-- Modal -->
+    <div id="modal" class="modal-overlay">
+        <div class="modal-container">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <div class="modal-icon">⏰</div>
+                    Processing & Fulfillment Times
+                </h2>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <!-- Live Preview -->
+                <div class="preview-card">
+                    <div class="preview-title">Current Configuration</div>
+                    <div class="preview-grid">
+                        <div class="preview-item">
+                            <div class="preview-label">Processing</div>
+                            <div class="preview-value" id="preview-processing">3 days</div>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-label">Shipping</div>
+                            <div class="preview-value" id="preview-shipping">4 days</div>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-label">Total Time</div>
+                            <div class="preview-value" id="preview-total">7-9 days</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Templates -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span class="section-icon">⚡</span>
+                        <span>Quick Templates</span>
+                    </div>
+                    
+                    <div class="time-cards">
+                        <div class="time-card" onclick="selectTemplate('express')">
+                            <div class="time-card-header">
+                                <span class="time-card-icon">🚀</span>
+                                <span class="time-card-title">Express</span>
+                            </div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">1-2 days processing</div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">2-3 days shipping</div>
+                        </div>
+                        
+                        <div class="time-card selected" onclick="selectTemplate('standard')">
+                            <div class="time-card-header">
+                                <span class="time-card-icon">📦</span>
+                                <span class="time-card-title">Standard</span>
+                            </div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">3 days processing</div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">4-5 days shipping</div>
+                        </div>
+                        
+                        <div class="time-card" onclick="selectTemplate('economy')">
+                            <div class="time-card-header">
+                                <span class="time-card-icon">🐢</span>
+                                <span class="time-card-title">Economy</span>
+                            </div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">5-7 days processing</div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">7-10 days shipping</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Processing Time -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span class="section-icon">📋</span>
+                        <span>Processing Time</span>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="form-field">
+                            <label class="form-label">Processing Days</label>
+                            <div class="input-wrapper">
+                                <input type="number" class="form-input" id="processing-days" value="3" min="1" max="30" onchange="updateProcessing(this.value)">
+                                <span class="input-suffix">days</span>
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Holiday Calendars</label>
+                            <div class="multi-select-wrapper">
+                                <div class="multi-select" onclick="toggleDropdown()">
+                                    <span id="selected-calendars">Spain, EU Common</span>
+                                    <span class="dropdown-arrow">▼</span>
+                                </div>
+                                <div class="multi-select-dropdown" id="calendar-dropdown">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" checked onchange="updateCalendars()">
+                                        <span>Spain (ES) - National</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" onchange="updateCalendars()">
+                                        <span>Spain - Andalucía Region</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" checked onchange="updateCalendars()">
+                                        <span>EU Common Holidays</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" onchange="updateCalendars()">
+                                        <span>France (FR)</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" onchange="updateCalendars()">
+                                        <span>Germany (DE)</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" onchange="updateCalendars()">
+                                        <span>United Kingdom (UK)</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" onchange="updateCalendars()">
+                                        <span>United States (US)</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" onchange="updateCalendars()">
+                                        <span>Custom Calendar</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="toggle-field" onclick="toggleField('weekend-processing')">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Process orders on weekends</div>
+                            <div class="toggle-description">Include weekend days in processing time</div>
+                        </div>
+                        <div class="toggle-switch" id="weekend-processing">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+
+                    <!-- Weekend Days Selection (shows when weekend processing is OFF) -->
+                    <div id="weekend-days-section" style="display: block;">
+                        <div class="form-field" style="margin-bottom: 20px;">
+                            <label class="form-label">Weekend Days</label>
+                            <div class="checkbox-group">
+                                <label class="inline-checkbox">
+                                    <input type="checkbox" checked>
+                                    <span>Saturday</span>
+                                </label>
+                                <label class="inline-checkbox">
+                                    <input type="checkbox" checked>
+                                    <span>Sunday</span>
+                                </label>
+                                <label class="inline-checkbox">
+                                    <input type="checkbox">
+                                    <span>Friday</span>
+                                </label>
+                            </div>
+                            <div style="margin-top: 8px; font-size: 0.75rem; color: #6b7280;">
+                                Select which days are considered weekends (non-working days)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="toggle-field" onclick="toggleField('holiday-processing')">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Process orders on holidays</div>
+                            <div class="toggle-description">Continue processing during selected holiday calendars</div>
+                        </div>
+                        <div class="toggle-switch" id="holiday-processing">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Calendar Section (shows when Custom is selected) -->
+                    <div id="custom-calendar-section" style="display: none;">
+                        <div class="custom-calendar-box">
+                            <div class="custom-calendar-header">
+                                <span style="font-size: 0.875rem; font-weight: 600; color: #4c1d95;">📅 Custom Holiday Dates</span>
+                                <button class="add-date-btn" onclick="addCustomDate()">+ Add Date</button>
+                            </div>
+                            <div class="custom-dates-list" id="custom-dates-list">
+                                <div class="custom-date-item">
+                                    <input type="date" class="date-input" value="2025-12-24">
+                                    <input type="text" class="date-name-input" placeholder="Holiday name" value="Christmas Eve">
+                                    <button class="remove-date-btn" onclick="removeDate(this)">×</button>
+                                </div>
+                                <div class="custom-date-item">
+                                    <input type="date" class="date-input" value="2025-08-15">
+                                    <input type="text" class="date-name-input" placeholder="Holiday name" value="Company Anniversary">
+                                    <button class="remove-date-btn" onclick="removeDate(this)">×</button>
+                                </div>
+                            </div>
+                            <div style="margin-top: 12px; font-size: 0.75rem; color: #6b7280;">
+                                Add company holidays, local festivals, or any dates when you don't process orders
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-icon">📅</span>
+                        <span class="info-text">Business days exclude weekends and holidays from all selected calendars. You can combine multiple calendars - for example, Spain National + EU + Custom for comprehensive coverage.</span>
+                    </div>
+                </div>
+
+                <!-- Shipping Time -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span class="section-icon">✈️</span>
+                        <span>Shipping Time</span>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="form-field">
+                            <label class="form-label">Minimum Days</label>
+                            <input type="number" class="form-input" id="min-shipping" value="4" min="1" max="30" onchange="updateShipping()">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Maximum Days</label>
+                            <input type="number" class="form-input" id="max-shipping" value="5" min="1" max="30" onchange="updateShipping()">
+                        </div>
+                    </div>
+
+                    <div class="toggle-field active" onclick="toggleField('express-option')">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Offer express shipping</div>
+                            <div class="toggle-description">Allow customers to pay extra for faster delivery</div>
+                        </div>
+                        <div class="toggle-switch active" id="express-option">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Cutoff -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span class="section-icon">🕐</span>
+                        <span>Daily Cutoff Time</span>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="form-field">
+                            <label class="form-label">Cutoff Time</label>
+                            <input type="time" class="form-input" value="06:00">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Timezone</label>
+                            <select class="form-input">
+                                <option>UTC+1 (Madrid)</option>
+                                <option>UTC+0 (London)</option>
+                                <option>UTC+2 (Berlin)</option>
+                                <option>UTC-5 (New York)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-icon">ℹ️</span>
+                        <span class="info-text">Orders placed after the cutoff time will be processed the next business day. This affects the total delivery time shown to customers.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <div class="footer-info">
+                    <span>⏱️</span>
+                    <span>Changes apply to new orders only</span>
+                </div>
+                <div class="footer-actions">
+                    <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-save" onclick="saveChanges()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('calendar-dropdown');
+            const multiSelect = document.querySelector('.multi-select');
+            
+            if (dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+                multiSelect.classList.remove('active');
+            } else {
+                dropdown.classList.add('show');
+                multiSelect.classList.add('active');
+            }
+        }
+
+        function updateCalendars() {
+            const checkboxes = document.querySelectorAll('.checkbox-option input[type="checkbox"]');
+            const selected = [];
+            let customSelected = false;
+            
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const label = checkbox.nextElementSibling.textContent;
+                    // Check if Custom Calendar is selected
+                    if (label.includes('Custom')) {
+                        customSelected = true;
+                    }
+                    // Shorten the label for display
+                    const shortLabel = label.replace(' - National', '')
+                                           .replace(' - ', ': ')
+                                           .replace(' Holidays', '')
+                                           .replace(' Common', '');
+                    selected.push(shortLabel);
+                }
+            });
+            
+            // Show/hide custom calendar section
+            const customSection = document.getElementById('custom-calendar-section');
+            if (customSelected) {
+                customSection.style.display = 'block';
+            } else {
+                customSection.style.display = 'none';
+            }
+            
+            const display = document.getElementById('selected-calendars');
+            if (selected.length === 0) {
+                display.textContent = 'No calendars selected';
+                display.style.color = '#9ca3af';
+            } else if (selected.length <= 2) {
+                display.textContent = selected.join(', ');
+                display.style.color = '#111827';
+            } else {
+                display.textContent = `${selected.slice(0, 2).join(', ')} +${selected.length - 2} more`;
+                display.style.color = '#111827';
+            }
+        }
+
+        function addCustomDate() {
+            const list = document.getElementById('custom-dates-list');
+            const newItem = document.createElement('div');
+            newItem.className = 'custom-date-item';
+            newItem.innerHTML = `
+                <input type="date" class="date-input" value="">
+                <input type="text" class="date-name-input" placeholder="Holiday name">
+                <button class="remove-date-btn" onclick="removeDate(this)">×</button>
+            `;
+            list.appendChild(newItem);
+            
+            // Focus on the date input
+            newItem.querySelector('.date-input').focus();
+        }
+
+        function removeDate(button) {
+            button.parentElement.remove();
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('calendar-dropdown');
+            const multiSelect = document.querySelector('.multi-select');
+            
+            if (!e.target.closest('.multi-select-wrapper')) {
+                dropdown.classList.remove('show');
+                multiSelect.classList.remove('active');
+            }
+        });
+
+        function openModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function toggleField(fieldId) {
+            const toggle = document.getElementById(fieldId);
+            const field = toggle.closest('.toggle-field');
+            const isActive = toggle.classList.contains('active');
+            
+            if (isActive) {
+                toggle.classList.remove('active');
+                field.classList.remove('active');
+            } else {
+                toggle.classList.add('active');
+                field.classList.add('active');
+            }
+
+            // Special handling for weekend processing toggle
+            if (fieldId === 'weekend-processing') {
+                const weekendSection = document.getElementById('weekend-days-section');
+                if (isActive) {
+                    // If turning OFF weekend processing (going back to NOT working weekends)
+                    weekendSection.style.display = 'block';
+                } else {
+                    // If turning ON weekend processing (will work on weekends)
+                    weekendSection.style.display = 'none';
+                }
+            }
+        }
+
+        function selectTemplate(template) {
+            // Remove selected class from all cards
+            document.querySelectorAll('.time-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked card
+            event.currentTarget.classList.add('selected');
+            
+            // Update values based on template
+            switch(template) {
+                case 'express':
+                    document.getElementById('processing-days').value = 1;
+                    updateProcessing(1);
+                    document.getElementById('min-shipping').value = 2;
+                    document.getElementById('max-shipping').value = 3;
+                    break;
+                case 'standard':
+                    document.getElementById('processing-days').value = 3;
+                    updateProcessing(3);
+                    document.getElementById('min-shipping').value = 4;
+                    document.getElementById('max-shipping').value = 5;
+                    break;
+                case 'economy':
+                    document.getElementById('processing-days').value = 6;
+                    updateProcessing(6);
+                    document.getElementById('min-shipping').value = 7;
+                    document.getElementById('max-shipping').value = 10;
+                    break;
+            }
+            updateShipping();
+        }
+
+        function updateProcessing(value) {
+            const days = value == 1 ? '1 day' : `${value} days`;
+            document.getElementById('preview-processing').textContent = days;
+            updateTotal();
+        }
+
+        function updateShipping() {
+            const min = document.getElementById('min-shipping').value;
+            const max = document.getElementById('max-shipping').value;
+            const shipping = min === max ? `${min} days` : `${min}-${max} days`;
+            document.getElementById('preview-shipping').textContent = shipping;
+            updateTotal();
+        }
+
+        function updateTotal() {
+            const processing = parseInt(document.getElementById('processing-days').value);
+            const minShipping = parseInt(document.getElementById('min-shipping').value);
+            const maxShipping = parseInt(document.getElementById('max-shipping').value);
+            
+            const minTotal = processing + minShipping;
+            const maxTotal = processing + maxShipping;
+            
+            const total = minTotal === maxTotal ? `${minTotal} days` : `${minTotal}-${maxTotal} days`;
+            document.getElementById('preview-total').textContent = total;
+        }
+
+        function saveChanges() {
+            const button = event.currentTarget;
+            const originalContent = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = '<span style="display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite;"></span> Saving...';
+            button.disabled = true;
+            
+            // Add spinning animation
+            const style = document.createElement('style');
+            style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+            document.head.appendChild(style);
+            
+            // Simulate save
+            setTimeout(() => {
+                button.innerHTML = '✓ Saved';
+                button.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    closeModal();
+                    // Reset button
+                    button.innerHTML = originalContent;
+                    button.disabled = false;
+                    button.style.background = '';
+                }, 1000);
+            }, 1500);
+        }
+
+        // Close modal on overlay click
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('modal').classList.contains('active')) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

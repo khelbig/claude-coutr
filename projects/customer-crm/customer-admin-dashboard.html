@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-title h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .header-subtitle {
+            color: #86868b;
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-primary {
+            background: #007aff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0051d5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,122,255,0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #1d1d1f;
+            border: 1px solid #e8e8ea;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f5f7;
+        }
+
+        /* Search and Filter Bar */
+        .search-filter-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border: 1px solid #e8e8ea;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #86868b;
+        }
+
+        .filter-dropdown {
+            padding: 10px 16px;
+            border: 1px solid #e8e8ea;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-dropdown:hover {
+            border-color: #007aff;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #86868b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .metric-change {
+            font-size: 12px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .metric-change.positive {
+            color: #0a7c42;
+        }
+
+        .metric-change.negative {
+            color: #d73502;
+        }
+
+        /* Customer Table */
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f0f2;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .view-btn {
+            padding: 6px 12px;
+            border: 1px solid #e8e8ea;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: #007aff;
+            color: white;
+            border-color: #007aff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f8fa;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #86868b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #f0f0f2;
+        }
+
+        td {
+            padding: 16px 20px;
+            font-size: 14px;
+            border-bottom: 1px solid #f0f0f2;
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        tbody tr:hover {
+            background: #f8f8fa;
+        }
+
+        /* Customer Cell Styles */
+        .customer-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .customer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .customer-info {
+            flex: 1;
+        }
+
+        .customer-name {
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 2px;
+        }
+
+        .customer-email {
+            font-size: 12px;
+            color: #86868b;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.active {
+            background: #d4f4dd;
+            color: #0a7c42;
+        }
+
+        .status-badge.inactive {
+            background: #f0f0f2;
+            color: #86868b;
+        }
+
+        .status-badge.vip {
+            background: #fff8f0;
+            color: #ff9500;
+        }
+
+        .status-badge.new {
+            background: #e8f4ff;
+            color: #007aff;
+        }
+
+        /* Risk Indicator */
+        .risk-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .risk-score {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .risk-score.low {
+            background: #d4f4dd;
+            color: #0a7c42;
+        }
+
+        .risk-score.medium {
+            background: #fff8f0;
+            color: #ff9500;
+        }
+
+        .risk-score.high {
+            background: #ffebe5;
+            color: #d73502;
+        }
+
+        .risk-score.critical {
+            background: #d73502;
+            color: white;
+        }
+
+        /* Source Tags */
+        .source-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: #f0f0f2;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .source-tag.shopify {
+            background: #96bf48;
+            color: white;
+        }
+
+        .source-tag.klaviyo {
+            background: #000000;
+            color: white;
+        }
+
+        /* Location Info */
+        .location-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #1d1d1f;
+        }
+
+        .location-flag {
+            width: 20px;
+            height: 14px;
+            border-radius: 2px;
+            background: linear-gradient(to bottom, #0052cc, #0052cc 33%, white 33%, white 66%, #ff0000 66%);
+        }
+
+        /* Demographics Pills */
+        .demo-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .demo-pill {
+            padding: 3px 8px;
+            background: #f8f8fa;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #1d1d1f;
+        }
+
+        /* Actions */
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid #e8e8ea;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #f5f5f7;
+            border-color: #007aff;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-top: 1px solid #f0f0f2;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: #86868b;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .page-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid #e8e8ea;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .page-btn:hover:not(.active):not(:disabled) {
+            background: #f5f5f7;
+        }
+
+        .page-btn.active {
+            background: #007aff;
+            color: white;
+            border-color: #007aff;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Customer Detail Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            animation: fadeIn 0.2s;
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -40%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #f0f0f2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #f5f5f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #e8e8ea;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            gap: 24px;
+            border-bottom: 1px solid #f0f0f2;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 12px 0;
+            border-bottom: 2px solid transparent;
+            color: #86868b;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            color: #007aff;
+            border-bottom-color: #007aff;
+        }
+
+        /* Activity Timeline */
+        .activity-timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .activity-item {
+            position: relative;
+            padding-bottom: 24px;
+        }
+
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: -29px;
+            top: 28px;
+            bottom: 0;
+            width: 2px;
+            background: #e8e8ea;
+        }
+
+        .activity-item:last-child::before {
+            display: none;
+        }
+
+        .activity-dot {
+            position: absolute;
+            left: -32px;
+            top: 4px;
+            width: 8px;
+            height: 8px;
+            background: #007aff;
+            border-radius: 50%;
+        }
+
+        .activity-content {
+            background: #f8f8fa;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #86868b;
+        }
+
+        .activity-description {
+            font-size: 13px;
+            color: #1d1d1f;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .table-container {
+                overflow-x: auto;
+            }
+            
+            table {
+                min-width: 900px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            
+            .search-filter-bar {
+                flex-direction: column;
+            }
+            
+            .search-box {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div class="header-title">
+                    <h1>Customers</h1>
+                    <div class="header-subtitle">Manage and track all customer data from multiple sources</div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                            <path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Z"></path>
+                        </svg>
+                        Export
+                    </button>
+                    <button class="btn btn-primary" onclick="showImportModal()">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                            <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a8,8,0,0,1-8,8H136v32a8,8,0,0,1-16,0V136H88a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,176,128Z"></path>
+                        </svg>
+                        Import Customers
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Search and Filters -->
+            <div class="search-filter-bar">
+                <div class="search-box">
+                    <svg class="search-icon" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Search by name, email, or ID...">
+                </div>
+                <select class="filter-dropdown">
+                    <option>All Customers</option>
+                    <option>Active</option>
+                    <option>VIP</option>
+                    <option>At Risk</option>
+                    <option>New (30 days)</option>
+                </select>
+                <select class="filter-dropdown">
+                    <option>All Sources</option>
+                    <option>Shopify</option>
+                    <option>Klaviyo</option>
+                </select>
+                <select class="filter-dropdown">
+                    <option>Risk Level</option>
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>High</option>
+                    <option>Critical</option>
+                </select>
+                <select class="filter-dropdown">
+                    <option>All Countries</option>
+                    <option>United States</option>
+                    <option>United Kingdom</option>
+                    <option>Canada</option>
+                    <option>Australia</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Total Customers</div>
+                <div class="metric-value">12,458</div>
+                <div class="metric-change positive">
+                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+                    </svg>
+                    +8.4% from last month
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Active Customers</div>
+                <div class="metric-value">8,234</div>
+                <div class="metric-change positive">
+                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+                    </svg>
+                    +12.3% from last month
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">VIP Customers</div>
+                <div class="metric-value">342</div>
+                <div class="metric-change positive">
+                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+                    </svg>
+                    +2.1% from last month
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Avg. Lifetime Value</div>
+                <div class="metric-value">€1,234</div>
+                <div class="metric-change positive">
+                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+                    </svg>
+                    +5.8% from last month
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">High Risk</div>
+                <div class="metric-value">18</div>
+                <div class="metric-change negative">
+                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 256 256" style="transform: rotate(180deg)">
+                        <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+                    </svg>
+                    -3 from last month
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Churn Rate</div>
+                <div class="metric-value">2.3%</div>
+                <div class="metric-change positive">
+                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+                    </svg>
+                    -0.5% from last month
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2 class="table-title">All Customers</h2>
+                <div class="view-toggle">
+                    <button class="view-btn active">List</button>
+                    <button class="view-btn">Grid</button>
+                </div>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox">
+                        </th>
+                        <th>Customer</th>
+                        <th>Status</th>
+                        <th>Source</th>
+                        <th>Location</th>
+                        <th>Demographics</th>
+                        <th>Orders</th>
+                        <th>Total Spent</th>
+                        <th>Risk Score</th>
+                        <th>Last Activity</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr onclick="showCustomerDetail()">
+                        <td><input type="checkbox" onclick="event.stopPropagation()"></td>
+                        <td>
+                            <div class="customer-cell">
+                                <div class="customer-avatar">PE</div>
+                                <div class="customer-info">
+                                    <div class="customer-name">Pauline Eldeeb</div>
+                                    <div class="customer-email">paulinad78@hotmail.com</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="status-badge vip">VIP</span></td>
+                        <td><span class="source-tag shopify">Shopify</span></td>
+                        <td>
+                            <div class="location-info">
+                                <span class="location-flag"></span>
+                                Beverly Hills, CA
+                            </div>
+                        </td>
+                        <td>
+                            <div class="demo-pills">
+                                <span class="demo-pill">Female</span>
+                                <span class="demo-pill">35-44</span>
+                                <span class="demo-pill">High Income</span>
+                            </div>
+                        </td>
+                        <td>23</td>
+                        <td>€8,456</td>
+                        <td><span class="risk-score low">Low Risk</span></td>
+                        <td>2 hours ago</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="action-btn" title="View Details">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                                        <path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"></path>
+                                    </svg>
+                                </button>
+                                <button class="action-btn" title="Send Email">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                                        <path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>
+                            <div class="customer-cell">
+                                <div class="customer-avatar" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">JD</div>
+                                <div class="customer-info">
+                                    <div class="customer-name">John Davidson</div>
+                                    <div class="customer-email">j.davidson@gmail.com</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="status-badge active">Active</span></td>
+                        <td>
+                            <span class="source-tag klaviyo">Klaviyo</span>
+                            <span class="source-tag shopify">Shopify</span>
+                        </td>
+                        <td>
+                            <div class="location-info">
+                                <span class="location-flag" style="background: linear-gradient(to bottom, #c60c30, #c60c30 50%, white 50%)"></span>
+                                London, UK
+                            </div>
+                        </td>
+                        <td>
+                            <div class="demo-pills">
+                                <span class="demo-pill">Male</span>
+                                <span class="demo-pill">45-54</span>
+                                <span class="demo-pill">Urban</span>
+                            </div>
+                        </td>
+                        <td>15</td>
+                        <td>€5,234</td>
+                        <td><span class="risk-score low">Low Risk</span></td>
+                        <td>1 day ago</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="action-btn" title="View Details">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                                        <path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"></path>
+                                    </svg>
+                                </button>
+                                <button class="action-btn" title="Send Email">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                                        <path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>
+                            <div class="customer-cell">
+                                <div class="customer-avatar" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">SM</div>
+                                <div class="customer-info">
+                                    <div class="customer-name">Sarah Mitchell</div>
+                                    <div class="customer-email">sarah.m@outlook.com</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="status-badge new">New</span></td>
+                        <td><span class="source-tag shopify">Shopify</span></td>
+                        <td>
+                            <div class="location-info">
+                                <span class="location-flag" style="background: linear-gradient(to bottom, #ff0000, #ff0000 50%, white 50%)"></span>
+                                Toronto, CA
+                            </div>
+                        </td>
+                        <td>
+                            <div class="demo-pills">
+                                <span class="demo-pill">Female</span>
+                                <span class="demo-pill">25-34</span>
+                                <span class="demo-pill">Suburban</span>
+                            </div>
+                        </td>
+                        <td>2</td>
+                        <td>€432</td>
+                        <td><span class="risk-score low">Low Risk</span></td>
+                        <td>3 hours ago</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="action-btn" title="View Details">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                                        <path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"></path>
+                                    </svg>
+                                </button>
+                                <button class="action-btn" title="Send Email">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                                        <path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>
+                            <div class="customer-cell">
+                                <div class="customer-avatar" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">RB</div>
+                                <div class="customer-info">
+                                    <div class="customer-name">Robert Brown</div>
+                                    <div class="customer-email">robert.brown@yahoo.com</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="status-badge inactive">Inactive</span></td>
+                        <td><span class="source-tag klaviyo">Klaviyo</span></td>
+                        <td>
+                            <div class="location-info">
+                                <span class="location-flag"></span>
+                                Miami, FL
+                            </div>
+                        </td>
+                        <td>
+                            <div class="demo-pills">
+                                <span class="demo-pill">Male</span>
+                                <span class="demo-pill">55+</span>
+                                <span class="demo-pill">Retired</span>
+                            </div>
+                        </td>
+                        <td>8</td>
+                        <td>€2,134</td>
+                        <td><span class="risk-score medium">Medium</span></td>
+                        <td>2 weeks ago</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="action-btn" title="View Details">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                                        <path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"></path>
+                                    </svg>
+                                </button>
+                                <button class="action-btn" title="Send Email">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                                        <path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>
+                            <div class="customer-cell">
+                                <div class="customer-avatar" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">MK</div>
+                                <div class="customer-info">
+                                    <div class="customer-name">Michael Kim</div>
+                                    <div class="customer-email">m.kim2024@gmail.com</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="status-badge active">Active</span></td>
+                        <td><span class="source-tag shopify">Shopify</span></td>
+                        <td>
+                            <div class="location-info">
+                                <span class="location-flag"></span>
+                                San Francisco, CA
+                            </div>
+                        </td>
+                        <td>
+                            <div class="demo-pills">
+                                <span class="demo-pill">Male</span>
+                                <span class="demo-pill">25-34</span>
+                                <span class="demo-pill">Tech Worker</span>
+                            </div>
+                        </td>
+                        <td>12</td>
+                        <td>€3,567</td>
+                        <td><span class="risk-score low">Low Risk</span></td>
+                        <td>5 hours ago</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="action-btn" title="View Details">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                                        <path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"></path>
+                                    </svg>
+                                </button>
+                                <button class="action-btn" title="Send Email">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                                        <path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>
+                            <div class="customer-cell">
+                                <div class="customer-avatar" style="background: #d73502;">⚠️</div>
+                                <div class="customer-info">
+                                    <div class="customer-name">Alex Thompson</div>
+                                    <div class="customer-email">alex.t.suspicious@protonmail.com</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="status-badge inactive">Inactive</span></td>
+                        <td><span class="source-tag shopify">Shopify</span></td>
+                        <td>
+                            <div class="location-info">
+                                <span class="location-flag" style="background: #333"></span>
+                                Multiple Locations
+                            </div>
+                        </td>
+                        <td>
+                            <div class="demo-pills">
+                                <span class="demo-pill">Unknown</span>
+                                <span class="demo-pill">VPN User</span>
+                            </div>
+                        </td>
+                        <td>3</td>
+                        <td>€1,245</td>
+                        <td><span class="risk-score critical">Critical</span></td>
+                        <td>1 month ago</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="action-btn" title="View Details">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                                        <path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"></path>
+                                    </svg>
+                                </button>
+                                <button class="action-btn" title="Block Customer" style="color: #d73502;">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                                        <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216ZM165.66,90.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32-11.32l56-56A8,8,0,0,1,165.66,90.34Z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- Pagination -->
+            <div class="pagination">
+                <div class="pagination-info">Showing 1-6 of 12,458 customers</div>
+                <div class="pagination-controls">
+                    <button class="page-btn" disabled>
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                            <path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path>
+                        </svg>
+                    </button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">...</button>
+                    <button class="page-btn">2076</button>
+                    <button class="page-btn">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                            <path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Detail Modal -->
+    <div class="modal-overlay" id="customerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Customer Details - Pauline Eldeeb</h2>
+                <button class="modal-close" onclick="closeCustomerDetail()">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Tabs -->
+                <div class="tabs">
+                    <div class="tab active">Overview</div>
+                    <div class="tab">Activity</div>
+                    <div class="tab">Orders</div>
+                    <div class="tab">Demographics</div>
+                    <div class="tab">Risk Analysis</div>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                        <div style="background: #f8f8fa; border-radius: 12px; padding: 20px;">
+                            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Contact Information</h3>
+                            <div style="display: grid; gap: 12px;">
+                                <div>
+                                    <div style="font-size: 12px; color: #86868b; margin-bottom: 4px;">Email</div>
+                                    <div style="font-size: 14px;">paulinad78@hotmail.com</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: #86868b; margin-bottom: 4px;">Phone</div>
+                                    <div style="font-size: 14px;">+1 310-985-1999</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: #86868b; margin-bottom: 4px;">Address</div>
+                                    <div style="font-size: 14px;">264 S Doheny Dr, Apt 6<br>Beverly Hills, CA 90211</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #f8f8fa; border-radius: 12px; padding: 20px;">
+                            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Customer Stats</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div>
+                                    <div style="font-size: 12px; color: #86868b; margin-bottom: 4px;">Total Orders</div>
+                                    <div style="font-size: 20px; font-weight: 600;">23</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: #86868b; margin-bottom: 4px;">Total Spent</div>
+                                    <div style="font-size: 20px; font-weight: 600;">€8,456</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: #86868b; margin-bottom: 4px;">Avg. Order Value</div>
+                                    <div style="font-size: 20px; font-weight: 600;">€367</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: #86868b; margin-bottom: 4px;">Customer Since</div>
+                                    <div style="font-size: 14px; font-weight: 600;">Jan 2023</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity Timeline -->
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Recent Activity</h3>
+                    <div class="activity-timeline">
+                        <div class="activity-item">
+                            <div class="activity-dot"></div>
+                            <div class="activity-content">
+                                <div class="activity-header">
+                                    <div class="activity-title">Placed Order #1079</div>
+                                    <div class="activity-time">2 hours ago</div>
+                                </div>
+                                <div class="activity-description">
+                                    VALENTINO Chic Fussfriend Slide Sandals - €439.69
+                                </div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot" style="background: #86868b;"></div>
+                            <div class="activity-content">
+                                <div class="activity-header">
+                                    <div class="activity-title">Viewed Product</div>
+                                    <div class="activity-time">3 hours ago</div>
+                                </div>
+                                <div class="activity-description">
+                                    Browsed luxury handbags collection from IP: 173.252.84.xxx
+                                </div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot" style="background: #86868b;"></div>
+                            <div class="activity-content">
+                                <div class="activity-header">
+                                    <div class="activity-title">Email Campaign Opened</div>
+                                    <div class="activity-time">1 day ago</div>
+                                </div>
+                                <div class="activity-description">
+                                    Opened "Summer Sale Collection" newsletter
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                

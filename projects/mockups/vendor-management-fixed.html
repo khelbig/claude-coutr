@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Management - Link2Lux</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Container */
+        .vendor-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 4rem;
+        }
+
+        /* Header */
+        .vendor-header {
+            background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.12);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vendor-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .vendor-header::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .vendor-header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+        }
+
+        .vendor-header-left {
+            flex: 1;
+        }
+
+        .vendor-title {
+            color: white;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.375rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .vendor-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.875rem;
+            font-weight: 400;
+        }
+
+        .vendor-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .vendor-badge-verified {
+            background: rgba(16, 185, 129, 0.25);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        /* Button Header */
+        .btn-header {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            outline: none;
+        }
+
+        .btn-header:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-header:active {
+            transform: translateY(0);
+        }
+
+        /* Tabs */
+        .tabs-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .tabs-header {
+            padding: 0.375rem;
+            display: flex;
+            gap: 0.125rem;
+            background: linear-gradient(to bottom, #fafafa, #f9fafb);
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 0.75rem 0.875rem;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: #64748b;
+            font-weight: 500;
+            font-size: 0.813rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            position: relative;
+            outline: none;
+        }
+
+        .tab-button:hover {
+            color: #475569;
+            background: rgba(124, 58, 237, 0.04);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(to bottom, white, #fafafa);
+            color: #7c3aed;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), inset 0 -2px 0 #7c3aed;
+            font-weight: 600;
+        }
+
+        .tab-icon {
+            font-size: 1rem;
+        }
+
+        .tab-content {
+            padding: 1.5rem;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(4px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Info Card */
+        .info-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.25rem;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.15s ease;
+            position: relative;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            border-color: rgba(199, 210, 254, 0.5);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.875rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .card-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .card-icon-contact {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .card-icon-business {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .card-icon-cost {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .card-title {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: #1e293b;
+            letter-spacing: -0.01em;
+        }
+
+        .edit-button {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            background: linear-gradient(to bottom, #ffffff, #fafafa);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            color: #64748b;
+            font-size: 0.813rem;
+            outline: none;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .edit-button:hover {
+            background: #7c3aed;
+            border-color: #7c3aed;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .edit-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Info Fields */
+        .info-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 0.875rem;
+        }
+
+        .info-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+        }
+
+        .field-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #94a3b8;
+            letter-spacing: 0.03em;
+        }
+
+        .field-value {
+            font-size: 0.875rem;
+            color: #1e293b;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .field-value.empty {
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        /* Cost Configuration Card */
+        .cost-card {
+            grid-column: 1 / -1;
+        }
+
+        .cost-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.875rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .cost-item {
+            background: linear-gradient(to bottom, #fafafa, #f8fafc);
+            padding: 0.875rem;
+            border-radius: 8px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .cost-item:hover {
+            background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .cost-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-top: 0.25rem;
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cost-value.not-configured {
+            font-size: 0.813rem;
+            color: #94a3b8;
+            font-weight: 500;
+            background: none;
+            -webkit-text-fill-color: #94a3b8;
+        }
+
+        /* Divider */
+        .section-divider {
+            margin: 1.25rem 0;
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+        }
+
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        /* Time Configuration */
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.875rem;
+        }
+
+        .time-item {
+            background: linear-gradient(to bottom, white, #fafafa);
+            padding: 0.875rem;
+            border-radius: 8px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .time-item:hover {
+            border-color: #c7d2fe;
+            box-shadow: 0 4px 6px -1px rgba(124, 58, 237, 0.05);
+            transform: translateY(-1px);
+        }
+
+        .time-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #7c3aed;
+            margin-top: 0.25rem;
+        }
+
+        .time-unit {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 400;
+            margin-top: 0.125rem;
+        }
+
+        /* Status Indicator */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.1875rem 0.625rem;
+            background: linear-gradient(to bottom, #f0fdf4, #dcfce7);
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 0.375rem;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1); 
+                opacity: 1; 
+            }
+            50% { 
+                transform: scale(1.5); 
+                opacity: 0.5; 
+            }
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.625rem;
+            margin-top: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.813rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            outline: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 2px 4px rgba(124, 58, 237, 0.15), 0 1px 2px rgba(124, 58, 237, 0.15);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(124, 58, 237, 0.2), 0 2px 4px rgba(124, 58, 237, 0.15);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #7c3aed;
+            border: 1px solid #e9d5ff;
+        }
+
+        .btn-secondary:hover {
+            background: #faf5ff;
+            border-color: #c4b5fd;
+        }
+
+        /* Empty state for tabs */
+        .empty-state {
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+            color: #94a3b8;
+        }
+
+        .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.4;
+        }
+
+        .empty-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 0.375rem;
+        }
+
+        .empty-description {
+            font-size: 0.813rem;
+            color: #94a3b8;
+            max-width: 360px;
+            margin: 0 auto;
+            line-height: 1.4;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .vendor-container {
+                padding: 2rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .vendor-container {
+                padding: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .vendor-container {
+                padding: 1rem;
+            }
+
+            .vendor-header {
+                padding: 1.5rem;
+            }
+
+            .vendor-title {
+                font-size: 1.5rem;
+            }
+
+            .tabs-header {
+                overflow-x: auto;
+                scrollbar-width: none;
+            }
+
+            .tabs-header::-webkit-scrollbar {
+                display: none;
+            }
+
+            .tab-button {
+                flex: 0 0 auto;
+                white-space: nowrap;
+            }
+
+            .tab-content {
+                padding: 1rem;
+            }
+
+            .time-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width: 1600px) {
+            .vendor-container {
+                max-width: 1000px;
+                padding: 2rem 5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="vendor-container">
+        <!-- Header -->
+        <div class="vendor-header">
+            <div class="vendor-header-content">
+                <div class="vendor-header-left">
+                    <div class="vendor-title">
+                        <span>🏢</span>
+                        Link2Lux Vendor Portal
+                        <span class="vendor-badge vendor-badge-verified">✓ Verified Supplier</span>
+                    </div>
+                    <div class="vendor-subtitle">
+                        Diego Martinez • Málaga, Spain • Member since 2024
+                    </div>
+                </div>
+                <button class="btn-header" onclick="viewReports()">
+                    <span>📊</span>
+                    View Reports
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabs Container -->
+        <div class="tabs-container">
+            <!-- Tabs Header -->
+            <div class="tabs-header">
+                <button class="tab-button active" onclick="switchTab('overview', this)">
+                    <span class="tab-icon">🏠</span>
+                    <span>Overview</span>
+                </button>
+                <button class="tab-button" onclick="switchTab('users', this)">
+                    <span class="tab-icon">👥</span>
+                    <span>Users</span>
+                </button>
+                <button class="tab-button" onclick="switchTab('products', this)">
+                    <span class="tab-icon">📦</span>
+                    <span>Products</span>
+                </button>
+                <button class="tab-button" onclick="switchTab('shipping', this)">
+                    <span class="tab-icon">💰</span>
+                    <span>Cost & Shipping</span>
+                </button>
+                <button class="tab-button" onclick="switchTab('banking', this)">
+                    <span class="tab-icon">🏦</span>
+                    <span>Banking</span>
+                </button>
+                <button class="tab-button" onclick="switchTab('integrations', this)">
+                    <span class="tab-icon">⚡</span>
+                    <span>Integrations</span>
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Overview Tab -->
+                <div id="overview-tab" class="tab-panel">
+                    <div class="cards-grid">
+                        <!-- Contact Information Card -->
+                        <div class="info-card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <div class="card-icon card-icon-contact">📧</div>
+                                    <h3 class="card-title">Contact Information</h3>
+                                </div>
+                                <button class="edit-button" onclick="editCard('contact')">✏️</button>
+                            </div>
+                            <div class="info-fields">
+                                <div class="info-field">
+                                    <span class="field-label">Primary Email</span>
+                                    <span class="field-value">diego.m@link2lux.com</span>
+                                </div>
+                                <div class="info-field">
+                                    <span class="field-label">Primary Phone</span>
+                                    <span class="field-value">+34 633 414 613</span>
+                                </div>
+                                <div class="info-field">
+                                    <span class="field-label">Contact Person</span>
+                                    <span class="field-value">Diego Martinez</span>
+                                </div>
+                                <div class="info-field">
+                                    <span class="status-indicator">
+                                        <span class="status-dot"></span>
+                                        Active
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Business Information Card -->
+                        <div class="info-card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <div class="card-icon card-icon-business">📍</div>
+                                    <h3 class="card-title">Business Information</h3>
+                                </div>
+                                <button class="edit-button" onclick="editCard('business')">✏️</button>
+                            </div>
+                            <div class="info-fields">
+                                <div class="info-field">
+                                    <span class="field-label">Address</span>
+                                    <span class="field-value">
+                                        Calle Alfarnate<br>
+                                        Málaga, AN 29006<br>
+                                        Spain 🇪🇸
+                                    </span>
+                                </div>
+                                <div class="info-field">
+                                    <span class="field-label">Business Type</span>
+                                    <span class="field-value">Corporation</span>
+                                </div>
+                                <div class="info-field">
+                                    <span class="field-label">Industry</span>
+                                    <span class="field-value">Retail</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn btn-primary">
+                            <span>💾</span>
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Users Tab (Empty State) -->
+                <div id="users-tab" class="tab-panel" style="display: none;">
+                    <div class="empty-state">
+                        <div class="empty-icon">👥</div>
+                        <div class="empty-title">User Management</div>
+                        <div class="empty-description">Manage user access and permissions for this vendor account</div>
+                        <button class="btn btn-primary" style="margin: 2rem auto 0;">
+                            <span>➕</span>
+                            Add User
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Products Tab (Empty State) -->
+                <div id="products-tab" class="tab-panel" style="display: none;">
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <div class="empty-title">Product Catalog</div>
+                        <div class="empty-description">Manage your product inventory and pricing</div>
+                        <button class="btn btn-primary" style="margin: 2rem auto 0;">
+                            <span>➕</span>
+                            Add Product
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cost & Shipping Tab -->
+                <div id="shipping-tab" class="tab-panel" style="display: none;">
+                    <div class="cards-grid">
+                        <!-- Cost Configuration Card -->
+                        <div class="info-card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <div class="card-icon card-icon-cost">💰</div>
+                                    <h3 class="card-title">Cost Configuration</h3>
+                                </div>
+                                <button class="edit-button" onclick="openCostModal()">✏️</button>
+                            </div>
+                            
+                            <div class="info-fields">
+                                <div class="info-field">
+                                    <span class="field-label">Handling Cost</span>
+                                    <span class="field-value">€5.00 (Fixed)</span>
+                                </div>
+                                <div class="info-field">
+                                    <span class="field-label">Shipping Cost</span>
+                                    <span class="field-value">€15.00 (Flat Rate)</span>
+                                </div>
+                                <div class="info-field">
+                                    <span class="field-label">Include Shipping in Payables</span>
+                                    <span class="field-value">
+                                        <span style="display: inline-flex; align-items: center; gap: 0.25rem; color: #10b981;">
+                                            <span>✓</span> Enabled
+                                        </span>
+                                    </span>
+                                </div>
+                                <div class="info-field">
+                                    <span class="field-label">Free Shipping Threshold</span>
+                                    <span class="field-value">€100.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Processing Times Card -->
+                        <div class="info-card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <div class="card-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">⏰</div>
+                                    <h3 class="card-title">Processing & Fulfillment Times</h3>
+                                </div>
+                                <button class="edit-button" onclick="openTimesModal()">✏️</button>
+                            </div>
+                            
+                            <div class="info-fields">
+                                <div class="info-field">
+                                    <span class="field-label">Processing Time</span>
+                                    <span class="field-value">3 business days</span>
+                                </div>
+                                <div class="info-field">
+                                    <span class="field-label">Shipment Time</span>
+                                    <span class="field-value">4 business days</span>
+                                </div>
+                                <div class="info-field">
+                                    <span class="field-label">Daily Cutoff</span>
+                                    <span class="field-value">06:00 AM (UTC+1)</span>
+                                </div>
+                                <div class="info-field">
+                                    <span class="field-label">Total Delivery Time</span>
+                                    <span class="field-value" style="color: #7c3aed; font-weight: 600;">7-9 business days</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Shipping Zones Card -->
+                        <div class="info-card cost-card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <div class="card-icon" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">🌍</div>
+                                    <h3 class="card-title">Shipping Zones & Rates</h3>
+                                </div>
+                                <button class="edit-button" onclick="openZonesModal()">✏️</button>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div class="cost-item">
+                                    <span class="field-label">Domestic (Spain)</span>
+                                    <div class="cost-value">€5.00</div>
+                                </div>
+                                <div class="cost-item">
+                                    <span class="field-label">EU Countries</span>
+                                    <div class="cost-value">€15.00</div>
+                                </div>
+                                <div class="cost-item">
+                                    <span class="field-label">International</span>
+                                    <div class="cost-value">€25.00</div>
+                                </div>
+                                <div class="cost-item">
+                                    <span class="field-label">Express Shipping</span>
+                                    <div class="cost-value">+€10.00</div>
+                                </div>
+                            </div>
+                            
+                            <hr class="section-divider">
+                            
+                            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                                <div>
+                                    <span class="field-label" style="margin-bottom: 0.25rem; display: block;">Shipping Restrictions</span>
+                                    <span style="font-size: 0.875rem; color: #64748b;">No shipping to: Russia, North Korea</span>
+                                </div>
+                                <span class="status-indicator">
+                                    <span class="status-dot"></span>
+                                    3 Active Zones
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Banking Tab -->
+                <div id="banking-tab" class="tab-panel" style="display: none;">
+                    <div class="empty-state">
+                        <div class="empty-icon">🏦</div>
+                        <div class="empty-title">Banking & Payment</div>
+                        <div class="empty-description">Configure payment methods and banking details</div>
+                        <button class="btn btn-primary" style="margin: 2rem auto 0;">
+                            <span>🔧</span>
+                            Configure Banking
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Integrations Tab (Empty State) -->
+                <div id="integrations-tab" class="tab-panel" style="display: none;">
+                    <div class="empty-state">
+                        <div class="empty-icon">⚡</div>
+                        <div class="empty-title">System Integrations</div>
+                        <div class="empty-description">Connect with external systems and APIs</div>
+                        <button class="btn btn-primary" style="margin: 2rem auto 0;">
+                            <span>🔗</span>
+                            Add Integration
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName, button) {
+            // Hide all tab panels
+            const panels = document.querySelectorAll('.tab-panel');
+            panels.forEach(panel => panel.style.display = 'none');
+            
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab panel
+            document.getElementById(tabName + '-tab').style.display = 'block';
+            
+            // Add active class to clicked button
+            button.classList.add('active');
+        }
+
+        function viewReports() {
+            console.log('Opening reports dashboard...');
+            alert('This would open the reports dashboard');
+        }
+
+        function editCard(cardType) {
+            // Animation feedback
+            event.currentTarget.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                event.currentTarget.style.transform = '';
+                console.log(`Edit ${cardType} information - This would open an edit modal`);
+            }, 200);
+        }
+
+        function openCostModal() {
+            // Animation feedback
+            event.currentTarget.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                event.currentTarget.style.transform = '';
+                alert('This would open the Cost & Shipping Configuration modal');
+            }, 200);
+        }
+
+        function openTimesModal() {
+            // Animation feedback
+            event.currentTarget.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                event.currentTarget.style.transform = '';
+                alert('This would open the Processing & Fulfillment Times modal');
+            }, 200);
+        }
+
+        function openZonesModal() {
+            // Animation feedback
+            event.currentTarget.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                event.currentTarget.style.transform = '';
+                alert('This would open the Shipping Zones configuration modal');
+            }, 200);
+        }
+
+        // Add keyboard navigation for tabs
+        document.addEventListener('keydown', function(e) {
+            if (e.target.classList.contains('tab-button')) {
+                const tabs = Array.from(document.querySelectorAll('.tab-button'));
+                const currentIndex = tabs.indexOf(e.target);
+                
+                if (e.key === 'ArrowRight' && currentIndex < tabs.length - 1) {
+                    tabs[currentIndex + 1].click();
+                    tabs[currentIndex + 1].focus();
+                } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                    tabs[currentIndex - 1].click();
+                    tabs[currentIndex - 1].focus();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

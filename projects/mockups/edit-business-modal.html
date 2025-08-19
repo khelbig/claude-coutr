@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Business Information Modal</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Modal Container */
+        .modal-container {
+            background: white;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 720px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: slideUp 0.3s ease;
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Modal Header */
+        .modal-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 1.75rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-header::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            top: -150px;
+            right: -150px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-20px, 20px) rotate(180deg); }
+        }
+
+        .modal-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .modal-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .close-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        /* Modal Body */
+        .modal-body {
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: calc(90vh - 200px);
+        }
+
+        .modal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        /* Map Preview */
+        .map-preview {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border: 2px solid #bfdbfe;
+            position: relative;
+            overflow: hidden;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .map-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 35px, #cbd5e1 35px, #cbd5e1 36px),
+                repeating-linear-gradient(90deg, transparent, transparent 35px, #cbd5e1 35px, #cbd5e1 36px);
+            opacity: 0.1;
+        }
+
+        .map-content {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .map-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .map-address {
+            font-size: 0.875rem;
+            color: #475569;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .map-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: gap 0.3s ease;
+        }
+
+        .map-link:hover {
+            gap: 0.5rem;
+        }
+
+        /* Form Sections */
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 16px;
+            background: linear-gradient(180deg, #10b981, #059669);
+            border-radius: 2px;
+        }
+
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .form-grid.two-columns {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid.two-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Form Group */
+        .form-group {
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .required-indicator {
+            color: #ef4444;
+            margin-left: 0.25rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1.125rem;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 3rem;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #1e293b;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #10b981;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+
+        .form-input:focus ~ .input-icon {
+            color: #10b981;
+        }
+
+        .form-input.has-value {
+            background: white;
+            border-color: #cbd5e1;
+        }
+
+        /* Select Dropdown */
+        .form-select {
+            appearance: none;
+            cursor: pointer;
+            padding-right: 3rem;
+        }
+
+        .select-arrow {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #94a3b8;
+            transition: all 0.3s ease;
+        }
+
+        .form-select:focus ~ .select-arrow {
+            color: #10b981;
+        }
+
+        /* Vendor Type Cards */
+        .vendor-type-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .vendor-type-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .vendor-type-card {
+            padding: 1.25rem;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vendor-type-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .vendor-type-card:hover {
+            border-color: #10b981;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.15);
+        }
+
+        .vendor-type-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .vendor-type-card.selected {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-color: #10b981;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        .vendor-type-card.selected::before {
+            transform: scaleX(1);
+        }
+
+        .vendor-type-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            animation: float-icon 3s ease-in-out infinite;
+        }
+
+        .vendor-type-card:nth-child(2) .vendor-type-icon {
+            animation-delay: 1s;
+        }
+
+        .vendor-type-card:nth-child(3) .vendor-type-icon {
+            animation-delay: 2s;
+        }
+
+        @keyframes float-icon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .vendor-type-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .vendor-type-desc {
+            font-size: 0.813rem;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .vendor-type-card.selected .vendor-type-name {
+            color: #059669;
+        }
+
+        /* Address Auto-complete */
+        .address-autocomplete {
+            position: relative;
+        }
+
+        .autocomplete-container {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .autocomplete-item {
+            padding: 0.875rem 1rem 0.875rem 3rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            color: #475569;
+            border-bottom: 1px solid #f1f5f9;
+            position: relative;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover {
+            background: #f0fdf4;
+            color: #059669;
+        }
+
+        .autocomplete-item::before {
+            content: '📍';
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Modal Footer */
+        .modal-footer {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .footer-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #94a3b8;
+            transition: all 0.3s ease;
+        }
+
+        .footer-info.has-changes {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .footer-info.saved {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-cancel {
+            background: white;
+            color: #64748b;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-cancel:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-save:disabled {
+            background: #e2e8f0;
+            color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Demo Button */
+        .demo-button {
+            padding: 1rem 2rem;
+            background: white;
+            color: #10b981;
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-button:hover {
+            background: #10b981;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Hidden state */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Button -->
+    <button class="demo-button" onclick="openModal()">Open Edit Business Modal</button>
+
+    <!-- Modal -->
+    <div id="modal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button class="close-button" onclick="closeModal()">✕</button>
+                <div>
+                    <h2 class="modal-title">
+                        <span>🏢</span>
+                        Edit Business Information
+                    </h2>
+                    <p class="modal-subtitle">Update your business location and vendor classification</p>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <!-- Map Preview -->
+                <div class="map-preview">
+                    <div class="map-content">
+                        <div class="map-icon">📍</div>
+                        <div class="map-address">
+                            Calle Alfarnate, Málaga, Andalucía 29006<br>
+                            🇪🇸 Spain
+                        </div>
+                        <a href="#" class="map-link" onclick="event.preventDefault()">
+                            View on map →
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Address Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Business Address</h3>
+                    
+                    <div class="form-grid">
+                        <!-- Country Selector First -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                Country
+                                <span class="required-indicator">*</span>
+                            </label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">🌍</span>
+                                <select class="form-input form-select has-value" name="country" id="countryField" onchange="updateAddressFields(this)">
+                                    <option value="">Select country</option>
+                                    <option value="ES" selected>🇪🇸 Spain</option>
+                                    <option value="US">🇺🇸 United States</option>
+                                    <option value="UK">🇬🇧 United Kingdom</option>
+                                    <option value="FR">🇫🇷 France</option>
+                                    <option value="DE">🇩🇪 Germany</option>
+                                    <option value="IT">🇮🇹 Italy</option>
+                                    <option value="CA">🇨🇦 Canada</option>
+                                    <option value="JP">🇯🇵 Japan</option>
+                                </select>
+                                <span class="select-arrow">▼</span>
+                            </div>
+                        </div>
+
+                        <!-- Address Auto-complete Field -->
+                        <div class="form-group address-autocomplete">
+                            <label class="form-label">
+                                Search Address
+                            </label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">🔍</span>
+                                <input 
+                                    type="text" 
+                                    class="form-input" 
+                                    placeholder="Start typing to search for an address..."
+                                    id="addressSearch"
+                                    oninput="searchAddress(this.value)"
+                                >
+                            </div>
+                            <div id="addressSuggestions" class="autocomplete-container hidden"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <span id="streetLabel">Street Address</span>
+                                <span class="required-indicator">*</span>
+                            </label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">🏠</span>
+                                <input 
+                                    type="text" 
+                                    class="form-input has-value" 
+                                    value="Calle Alfarnate"
+                                    placeholder="Enter street address"
+                                    name="street"
+                                    id="streetField"
+                                    onchange="validateField(this)"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-grid two-columns">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    City
+                                    <span class="required-indicator">*</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <span class="input-icon">🏙️</span>
+                                    <input 
+                                        type="text" 
+                                        class="form-input has-value" 
+                                        value="Málaga"
+                                        placeholder="Enter city"
+                                        name="city"
+                                        id="cityField"
+                                        onchange="validateField(this)"
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="stateGroup">
+                                <label class="form-label">
+                                    <span id="stateLabel">Province</span>
+                                    <span class="required-indicator">*</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <span class="input-icon">📍</span>
+                                    <input 
+                                        type="text" 
+                                        class="form-input has-value" 
+                                        value="Andalucía"
+                                        placeholder="State or Province"
+                                        name="state"
+                                        id="stateField"
+                                        onchange="validateField(this)"
+                                        list="states"
+                                    >
+                                </div>
+                                <datalist id="states">
+                                    <option value="Andalucía">
+                                    <option value="Madrid">
+                                    <option value="Cataluña">
+                                    <option value="Valencia">
+                                </datalist>
+                            </div>
+                        </div>
+
+                        <div class="form-grid two-columns">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <span id="postalLabel">Postal Code</span>
+                                    <span class="required-indicator">*</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <span class="input-icon">📮</span>
+                                    <input 
+                                        type="text" 
+                                        class="form-input has-value" 
+                                        value="29006"
+                                        placeholder="00000"
+                                        name="postal"
+                                        id="postalField"
+                                        onchange="validateField(this)"
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="extraFieldGroup" style="display: none;">
+                                <label class="form-label">
+                                    <span id="extraFieldLabel">Additional Info</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <span class="input-icon">🏢</span>
+                                    <input 
+                                        type="text" 
+                                        class="form-input" 
+                                        placeholder="Apt, Suite, Floor, etc."
+                                        name="extra"
+                                        id="extraField"
+                                        onchange="validateField(this)"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vendor Type Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Vendor Classification</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Vendor Type
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <div class="vendor-type-cards">
+                            <div class="vendor-type-card selected" onclick="selectVendorType(this, 'boutique')">
+                                <div class="vendor-type-icon">💎</div>
+                                <div class="vendor-type-name">Boutique</div>
+                                <div class="vendor-type-desc">Independent luxury retailer</div>
+                            </div>
+                            <div class="vendor-type-card" onclick="selectVendorType(this, 'brand')">
+                                <div class="vendor-type-icon">🏷️</div>
+                                <div class="vendor-type-name">Brand</div>
+                                <div class="vendor-type-desc">Official brand representative</div>
+                            </div>
+                            <div class="vendor-type-card" onclick="selectVendorType(this, 'aggregator')">
+                                <div class="vendor-type-icon">🔗</div>
+                                <div class="vendor-type-name">Aggregator</div>
+                                <div class="vendor-type-desc">Multi-brand distributor</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <div class="footer-info">
+                    <span>ℹ️</span>
+                    <span id="changeStatus">No unsaved changes</span>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-cancel" onclick="closeModal()">
+                        <span>✕</span>
+                        Cancel
+                    </button>
+                    <button class="btn btn-save" id="saveBtn" onclick="saveChanges()" disabled>
+                        <span>✓</span>
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store original values
+        let originalValues = {};
+        let hasChanges = false;
+        let selectedVendorType = 'boutique';
+
+        // Country configurations
+        const countryConfigs = {
+            US: {
+                stateLabel: 'State',
+                postalLabel: 'ZIP Code',
+                postalPlaceholder: '00000',
+                streetLabel: 'Street Address',
+                showExtraField: true,
+                extraFieldLabel: 'Apt/Suite',
+                states: ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia']
+            },
+            UK: {
+                stateLabel: 'County',
+                postalLabel: 'Postcode',
+                postalPlaceholder: 'SW1A 1AA',
+                streetLabel: 'Address Line 1',
+                showExtraField: true,
+                extraFieldLabel: 'Address Line 2',
+                states: ['Greater London', 'West Midlands', 'Greater Manchester', 'West Yorkshire', 'Kent', 'Essex', 'Merseyside']
+            },
+            ES: {
+                stateLabel: 'Province',
+                postalLabel: 'Postal Code',
+                postalPlaceholder: '00000',
+                streetLabel: 'Street Address',
+                showExtraField: false,
+                states: ['Andalucía', 'Madrid', 'Cataluña', 'Valencia', 'Galicia', 'Castilla y León', 'País Vasco']
+            },
+            FR: {
+                stateLabel: 'Region',
+                postalLabel: 'Code Postal',
+                postalPlaceholder: '00000',
+                streetLabel: 'Adresse',
+                showExtraField: true,
+                extraFieldLabel: 'Complément',
+                states: ['Île-de-France', 'Auvergne-Rhône-Alpes', 'Nouvelle-Aquitaine', 'Occitanie', 'Hauts-de-France']
+            },
+            DE: {
+                stateLabel: 'State',
+                postalLabel: 'PLZ',
+                postalPlaceholder: '00000',
+                streetLabel: 'Straße und Hausnummer',
+                showExtraField: false,
+                states: ['Bayern', 'Nordrhein-Westfalen', 'Baden-Württemberg', 'Niedersachsen', 'Hessen', 'Berlin']
+            },
+            CA: {
+                stateLabel: 'Province',
+                postalLabel: 'Postal Code',
+                postalPlaceholder: 'A1A 1A1',
+                streetLabel: 'Street Address',
+                showExtraField: true,
+                extraFieldLabel: 'Unit/Suite',
+                states: ['Ontario', 'Quebec', 'British Columbia', 'Alberta', 'Manitoba', 'Saskatchewan']
+            },
+            JP: {
+                stateLabel: 'Prefecture',
+                postalLabel: 'Postal Code',
+                postalPlaceholder: '000-0000',
+                streetLabel: 'Address',
+                showExtraField: true,
+                extraFieldLabel: 'Building/Room',
+                states: ['Tokyo', 'Osaka', 'Kanagawa', 'Aichi', 'Saitama', 'Chiba', 'Hyogo']
+            },
+            IT: {
+                stateLabel: 'Province',
+                postalLabel: 'CAP',
+                postalPlaceholder: '00000',
+                streetLabel: 'Indirizzo',
+                showExtraField: false,
+                states: ['Roma', 'Milano', 'Napoli', 'Torino', 'Palermo', 'Genova', 'Bologna']
+            }
+        };
+
+        // Mock address suggestions
+        const mockAddresses = [
+            { street: 'Calle Alfarnate 15', city: 'Málaga', state: 'Andalucía', postal: '29006', country: 'ES' },
+            { street: 'Avenida de Andalucía 23', city: 'Málaga', state: 'Andalucía', postal: '29007', country: 'ES' },
+            { street: 'Plaza de la Marina 4', city: 'Málaga', state: 'Andalucía', postal: '29001', country: 'ES' }
+        ];
+
+        function openModal() {
+            document.getElementById('modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            storeOriginalValues();
+        }
+
+        function closeModal() {
+            if (hasChanges) {
+                if (confirm('You have unsaved changes. Are you sure you want to close?')) {
+                    document.getElementById('modal').classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                    resetModal();
+                }
+            } else {
+                document.getElementById('modal').classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function storeOriginalValues() {
+            originalValues = {};
+            document.querySelectorAll('.form-input').forEach(input => {
+                originalValues[input.name] = input.value;
+            });
+            originalValues.vendorType = selectedVendorType;
+        }
+
+        function checkForChanges() {
+            let changed = false;
+            document.querySelectorAll('.form-input').forEach(input => {
+                if (input.value !== (originalValues[input.name] || '')) {
+                    changed = true;
+                }
+            });
+            
+            if (selectedVendorType !== originalValues.vendorType) {
+                changed = true;
+            }
+            
+            hasChanges = changed;
+            const saveBtn = document.getElementById('saveBtn');
+            const status = document.getElementById('changeStatus');
+            const footerInfo = status.parentElement;
+            
+            if (hasChanges) {
+                saveBtn.disabled = false;
+                status.textContent = 'You have unsaved changes';
+                footerInfo.classList.add('has-changes');
+                footerInfo.classList.remove('saved');
+                status.previousElementSibling.textContent = '⚠️';
+            } else {
+                saveBtn.disabled = true;
+                status.textContent = 'No unsaved changes';
+                footerInfo.classList.remove('has-changes', 'saved');
+                status.previousElementSibling.textContent = 'ℹ️';
+            }
+        }
+
+        function validateField(input) {
+            if (input.value.trim()) {
+                input.classList.add('has-value');
+            } else {
+                input.classList.remove('has-value');
+            }
+            checkForChanges();
+        }
+
+        function selectVendorType(element, type) {
+            document.querySelectorAll('.vendor-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            selectedVendorType = type;
+            checkForChanges();
+        }
+
+        function updateAddressFields(countrySelect) {
+            const country = countrySelect.value;
+            const config = countryConfigs[country] || countryConfigs.ES;
+            
+            // Update labels
+            document.getElementById('stateLabel').textContent = config.stateLabel;
+            document.getElementById('postalLabel').textContent = config.postalLabel;
+            document.getElementById('streetLabel').textContent = config.streetLabel;
+            
+            // Update placeholders
+            document.getElementById('postalField').placeholder = config.postalPlaceholder;
+            
+            // Update state/province datalist
+            const statesList = document.getElementById('states');
+            statesList.innerHTML = '';
+            config.states.forEach(state => {
+                const option = document.createElement('option');
+                option.value = state;
+                statesList.appendChild(option);
+            });
+            
+            // Show/hide extra field
+            const extraFieldGroup = document.getElementById('extraFieldGroup');
+            if (config.showExtraField) {
+                extraFieldGroup.style.display = 'block';
+                document.getElementById('extraFieldLabel').textContent = config.extraFieldLabel;
+            } else {
+                extraFieldGroup.style.display = 'none';
+            }
+            
+            validateField(countrySelect);
+        }
+
+        function searchAddress(query) {
+            const suggestionsContainer = document.getElementById('addressSuggestions');
+            
+            if (query.length < 3) {
+                suggestionsContainer.classList.add('hidden');
+                return;
+            }
+            
+            // Simulate API call for address suggestions
+            suggestionsContainer.innerHTML = '';
+            suggestionsContainer.classList.remove('hidden');
+            
+            mockAddresses.forEach(address => {
+                if (address.street.toLowerCase().includes(query.toLowerCase()) || 
+                    address.city.toLowerCase().includes(query.toLowerCase())) {
+                    
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.innerHTML = `
+                        <strong>${address.street}</strong><br>
+                        <span style="font-size: 0.75rem; color: #94a3b8;">
+                            ${address.city}, ${address.state} ${address.postal}
+                        </span>
+                    `;
+                    item.onclick = () => selectAddress(address);
+                    suggestionsContainer.appendChild(item);
+                }
+            });
+            
+            if (suggestionsContainer.children.length === 0) {
+                const noResults = document.createElement('div');
+                noResults.className = 'autocomplete-item';
+                noResults.style.color = '#94a3b8';
+                noResults.textContent = 'No addresses found - keep typing...';
+                suggestionsContainer.appendChild(noResults);
+            }
+        }
+
+        function selectAddress(address) {
+            // Auto-populate fields
+            document.getElementById('streetField').value = address.street;
+            document.getElementById('cityField').value = address.city;
+            document.getElementById('stateField').value = address.state;
+            document.getElementById('postalField').value = address.postal;
+            
+            // Mark fields as having values
+            ['streetField', 'cityField', 'stateField', 'postalField'].forEach(id => {
+                document.getElementById(id).classList.add('has-value');
+            });
+            
+            // Clear search and hide suggestions
+            document.getElementById('addressSearch').value = '';
+            document.getElementById('addressSuggestions').classList.add('hidden');
+            
+            // Update map preview
+            updateMapPreview();
+            
+            // Check for changes
+            checkForChanges();
+        }
+
+        function saveChanges() {
+            const button = event.currentTarget;
+            const originalContent = button.innerHTML;
+            const status = document.getElementById('changeStatus');
+            const footerInfo = status.parentElement;
+            
+            // Show loading state
+            button.innerHTML = '<div class="loading-spinner"></div> Saving...';
+            button.disabled = true;
+            
+            // Simulate save
+            setTimeout(() => {
+                button.innerHTML = '<span>✓</span> Saved!';
+                button.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                
+                // Update footer status
+                status.textContent = 'All changes saved';
+                status.previousElementSibling.textContent = '✅';
+                footerInfo.classList.remove('has-changes');
+                footerInfo.classList.add('saved');
+                
+                // Update map preview
+                updateMapPreview();
+                
+                // Store new values as original
+                storeOriginalValues();
+                hasChanges = false;
+                
+                setTimeout(() => {
+                    // Reset button appearance
+                    button.innerHTML = originalContent;
+                    button.style.background = '';
+                    button.disabled = true;
+                    
+                    // Reset status
+                    status.textContent = 'No unsaved changes';
+                    status.previousElementSibling.textContent = 'ℹ️';
+                    footerInfo.classList.remove('saved');
+                }, 2000);
+            }, 1500);
+        }
+
+        function updateMapPreview() {
+            const street = document.getElementById('streetField').value;
+            const city = document.getElementById('cityField').value;
+            const state = document.getElementById('stateField').value;
+            const postal = document.getElementById('postalField').value;
+            const country = document.querySelector('#countryField option:checked').text;
+            
+            const addressElement = document.querySelector('.map-address');
+            addressElement.innerHTML = `${street}, ${city}, ${state} ${postal}<br>${country}`;
+        }
+
+        function resetModal() {
+            hasChanges = false;
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span>✓</span> Save Changes';
+            saveBtn.style.background = '';
+        }
+
+        // Close modal on overlay click
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Hide address suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.address-autocomplete')) {
+                document.getElementById('addressSuggestions').classList.add('hidden');
+            }
+        });
+
+        // Initialize all inputs with values
+        document.querySelectorAll('.form-input').forEach(input => {
+            if (input.value) {
+                input.classList.add('has-value');
+            }
+            
+            input.addEventListener('input', function() {
+                validateField(this);
+            });
+        });
+    </script>
+</body>
+</html>

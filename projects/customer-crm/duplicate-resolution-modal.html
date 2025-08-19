@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resolve Duplicate Customers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.6;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Modal Container */
+        .modal-container {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Modal Header */
+        .modal-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid #f0f0f2;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .modal-title h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 4px;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: #86868b;
+        }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #f5f5f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #e8e8ea;
+            transform: rotate(90deg);
+        }
+
+        /* Modal Body */
+        .modal-body {
+            padding: 24px 32px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        /* Summary Stats */
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 20px;
+            background: #f8f8fa;
+            border-radius: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #86868b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        /* Conflict Card */
+        .conflict-card {
+            background: #f8f8fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .conflict-card:hover {
+            border-color: #007aff;
+            box-shadow: 0 4px 12px rgba(0,122,255,0.1);
+        }
+
+        .conflict-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .conflict-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .conflict-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            background: #fff8f0;
+            color: #ff9500;
+        }
+
+        /* Customer Comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .customer-card {
+            background: white;
+            border: 1px solid #e8e8ea;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .customer-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #86868b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .customer-card-header.import {
+            color: #007aff;
+        }
+
+        .customer-card-header.existing {
+            color: #0a7c42;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .info-label {
+            color: #86868b;
+        }
+
+        .info-value {
+            color: #1d1d1f;
+            font-weight: 500;
+        }
+
+        .info-value.highlight {
+            color: #007aff;
+            font-weight: 600;
+        }
+
+        .vs-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #86868b;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Action Select */
+        .action-select {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1px solid #e8e8ea;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-select:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
+        }
+
+        .action-select.selected {
+            background: #e8f4ff;
+            border-color: #007aff;
+        }
+
+        /* Modal Footer */
+        .modal-footer {
+            padding: 20px 32px;
+            border-top: 1px solid #f0f0f2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f8fa;
+        }
+
+        .footer-info {
+            font-size: 14px;
+            color: #86868b;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #1d1d1f;
+            border: 1px solid #e8e8ea;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f5f7;
+        }
+
+        .btn-primary {
+            background: #007aff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0051d5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,122,255,0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #86868b;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Bulk Actions Bar */
+        .bulk-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: #e8f4ff;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .bulk-select {
+            padding: 6px 12px;
+            border: 1px solid #007aff;
+            border-radius: 6px;
+            background: white;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        /* Scrollbar Styling */
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: #f0f0f2;
+            border-radius: 10px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: #86868b;
+            border-radius: 10px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #1d1d1f;
+        }
+    </style>
+</head>
+<body>
+    <div class="modal-container">
+        <!-- Modal Header -->
+        <div class="modal-header">
+            <div>
+                <h2>Resolve Duplicate Customers</h2>
+                <div class="modal-subtitle">Found 20 phone numbers that already exist without email addresses. Choose how to handle each conflict.</div>
+            </div>
+            <button class="close-btn">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                    <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+            <!-- Summary Stats -->
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <div class="stat-value">20</div>
+                    <div class="stat-label">Total Conflicts</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">Name Matches</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">15</div>
+                    <div class="stat-label">No Names</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Resolved</div>
+                </div>
+            </div>
+
+            <!-- Bulk Actions -->
+            <div class="bulk-actions">
+                <span style="font-size: 13px; font-weight: 500;">Quick Actions:</span>
+                <button class="bulk-select">Update all with matching names</button>
+                <button class="bulk-select">Skip all without names</button>
+                <button class="bulk-select">Create all as new</button>
+            </div>
+
+            <!-- Conflict Cards -->
+            <div class="conflict-card">
+                <div class="conflict-header">
+                    <div class="conflict-title">Row 127: Phone +16082131250</div>
+                    <span class="conflict-badge">Requires Action</span>
+                </div>
+                
+                <div class="comparison-grid">
+                    <div class="customer-card">
+                        <div class="customer-card-header import">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
+                                <path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34Z"></path>
+                            </svg>
+                            Import Data
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-row">
+                                <span class="info-label">Name:</span>
+                                <span class="info-value">Satang Corrah</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value highlight">s.corrah@email.com</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Phone:</span>
+                                <span class="info-value">+16082131250</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="vs-divider">VS</div>
+                    
+                    <div class="customer-card">
+                        <div class="customer-card-header existing">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
+                                <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
+                            </svg>
+                            Existing Customer
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-row">
+                                <span class="info-label">Name:</span>
+                                <span class="info-value">Satang Corrah</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value" style="color: #86868b;">No email</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Created:</span>
+                                <span class="info-value">7/17/2025</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Orders:</span>
+                                <span class="info-value">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <select class="action-select">
+                    <option value="">Select action...</option>
+                    <option value="update">✅ Update existing - add email address</option>
+                    <option value="skip">⏭️ Skip this row - don't import</option>
+                    <option value="create">➕ Create as new customer</option>
+                    <option value="merge">🔄 Merge - combine information</option>
+                </select>
+            </div>
+
+            <div class="conflict-card">
+                <div class="conflict-header">
+                    <div class="conflict-title">Row 138: Phone +12402710371</div>
+                    <span class="conflict-badge">Requires Action</span>
+                </div>
+                
+                <div class="comparison-grid">
+                    <div class="customer-card">
+                        <div class="customer-card-header import">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
+                                <path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34Z"></path>
+                            </svg>
+                            Import Data
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-row">
+                                <span class="info-label">Name:</span>
+                                <span class="info-value" style="color: #86868b;">No name</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value highlight">customer138@email.com</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Phone:</span>
+                                <span class="info-value">+12402710371</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="vs-divider">VS</div>
+                    
+                    <div class="customer-card">
+                        <div class="customer-card-header existing">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
+                                <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
+                            </svg>
+                            Existing Customer
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-row">
+                                <span class="info-label">Name:</span>
+                                <span class="info-value" style="color: #86868b;">No name</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value" style="color: #86868b;">No email</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Created:</span>
+                                <span class="info-value">7/19/2025</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Orders:</span>
+                                <span class="info-value">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <select class="action-select">
+                    <option value="">Select action...</option>
+                    <option value="update">✅ Update existing - add email address</option>
+                    <option value="skip">⏭️ Skip this row - don't import</option>
+                    <option value="create">➕ Create as new customer</option>
+                    <option value="merge">🔄 Merge - combine information</option>
+                </select>
+            </div>
+
+            <div class="conflict-card">
+                <div class="conflict-header">
+                    <div class="conflict-title">Row 141: Phone +17035689948</div>
+                    <span class="conflict-badge">Requires Action</span>
+                </div>
+                
+                <div class="comparison-grid">
+                    <div class="customer-card">
+                        <div class="customer-card-header import">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
+                                <path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34Z"></path>
+                            </svg>
+                            Import Data
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-row">
+                                <span class="info-label">Name:</span>
+                                <span class="info-value">Hassan Usmani</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value highlight">h.usmani@email.com</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Phone:</span>
+                                <span class="info-value">+17035689948</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="vs-divider">VS</div>
+                    
+                    <div class="customer-card">
+                        <div class="customer-card-header existing">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
+                                <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
+                            </svg>
+                            Existing Customer
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-row">
+                                <span class="info-label">Name:</span>
+                                <span class="info-value">Hassan Usmani</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value" style="color: #86868b;">No email</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Created:</span>
+                                <span class="info-value">7/20/2025</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Orders:</span>
+                                <span class="info-value">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <select class="action-select selected">
+                    <option value="">Select action...</option>
+                    <option value="update" selected>✅ Update existing - add email address</option>
+                    <option value="skip">⏭️ Skip this row - don't import</option>
+                    <option value="create">➕ Create as new customer</option>
+                    <option value="merge">🔄 Merge - combine information</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+            <div class="footer-info">1 of 20 conflicts resolved</div>
+            <div class="btn-group">
+                <button class="btn btn-secondary">Cancel</button>
+                <button class="btn btn-primary" disabled>Resolve 20 Conflicts</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle action selection
+        document.querySelectorAll('.action-select').forEach(select => {
+            select.addEventListener('change', function() {
+                // Remove selected class from all selects
+                document.querySelectorAll('.action-select').forEach(s => s.classList.remove('selected'));
+                
+                // Add selected class if value is chosen
+                if (this.value) {
+                    this.classList.add('selected');
+                    updateResolvedCount();
+                }
+            });
+        });
+
+        function updateResolvedCount() {
+            const resolved = document.querySelectorAll('.action-select.selected').length;
+            const total = document.querySelectorAll('.action-select').length;
+            
+            document.querySelector('.footer-info').textContent = `${resolved} of ${total} conflicts resolved`;
+            
+            const resolveBtn = document.querySelector('.btn-primary');
+            if (resolved === total) {
+                resolveBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
