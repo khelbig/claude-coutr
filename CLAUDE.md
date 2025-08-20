@@ -31,7 +31,12 @@ This file provides comprehensive guidance to Claude Code (claude.ai/code) when w
 ├── operations/              # Node.js microservices backend (separate git repo)
 ├── shopify/                 # Liquid theme for storefront (separate git repo)
 ├── firebase-catalog/        # Legacy data sync service (separate git repo)
-└── aws-orders/              # AWS Lambda functions for order processing (separate git repo)
+├── aws-orders/              # AWS Lambda functions for order processing (separate git repo)
+└── projects/                # Project planning and architecture documentation
+    ├── customer-crm/        # Customer CRM dual-database architecture
+    ├── migration/           # Admin-to-operations migration plans
+    ├── mockups/             # UI/UX mockups for new features
+    └── vendor-invoice/      # Vendor invoice feature planning
 ```
 
 ### Architectural Design Patterns
@@ -615,6 +620,37 @@ Creates batch payment invoices combining:
 - **Vendor Event Tracking**: Complete audit trail system
 - **Expected Ship Date System**: Manual override protection
 
+## Ongoing Migration Strategy
+
+The platform is undergoing a critical architectural migration to ensure proper separation of concerns:
+
+### Admin-to-Operations Migration
+- **Goal**: Admin app should have ZERO direct database access
+- **Status**: 93 admin API routes need migration to operations service
+- **Pattern**: All admin routes proxy to operations service endpoints
+
+### Migration Priorities
+1. **Utility Routes** - Complex business logic (update handling costs, sync operations)
+2. **AP Invoice Routes** - Financial processing and payment workflows
+3. **Order Management** - Order CRUD and status updates
+4. **Line Item Management** - Individual item tracking and status
+5. **Vendor Management** - Vendor CRUD and configuration
+
+### Migration Pattern
+```javascript
+// Before (admin/src/app/api/route.ts)
+export async function GET() {
+  const data = await firestore.collection('vendors').get();
+  return Response.json(data);
+}
+
+// After (admin/src/app/api/route.ts)
+export async function GET() {
+  const response = await fetch(`${OPERATIONS_URL}/api/vendors`);
+  return Response.json(await response.json());
+}
+```
+
 ## Developer Workflow Memories
 
 - Always look at how admin talks to operations app before coding
@@ -648,19 +684,38 @@ Creates batch payment invoices combining:
 - **Unit of Work**: TypeORM transactions for data consistency
 - **Query Object**: Complex queries encapsulated in service methods
 - **Data Mapper**: TypeORM entities separate from business logic
+- **Generated Columns**: Database-computed fields with SQL expressions
+- **Composite Indexes**: Multi-column indexes with conditional WHERE clauses
+- **Entity Lifecycle Hooks**: @BeforeInsert/@BeforeUpdate for data normalization
 
 ### API Design Patterns
 - **RESTful Design**: Resource-based URLs with HTTP verbs
 - **Proxy Pattern**: Admin app proxies to operations service
 - **API Gateway**: Operations service acts as gateway to multiple data sources
-- **Circuit Breaker**: Error handling with fallback mechanisms
+- **Circuit Breaker**: Error handling with exponential backoff and retry mechanisms
 
 ### Frontend Patterns (Admin Dashboard)
 - **Container/Presentational**: Smart vs dumb components
 - **Higher-Order Components**: Authentication and permission wrappers
 - **Render Props**: Flexible component composition
-- **Compound Components**: Complex UI with multiple sub-components
+- **Compound Components**: Context-based complex UI with event delegation
 - **Controlled Components**: Form state management with React Hook Form
+- **Custom Hook Architecture**: Advanced hooks for permissions, SSE, and impersonation
+- **View-As Pattern**: Global fetch interception for supplier impersonation
+
+### Event-Driven Architecture Patterns
+- **Event Sourcing**: Complete event store with replay capabilities
+- **CQRS Implementation**: Separate read/write models with Algolia/PostgreSQL
+- **Event Correlation**: Tracking events across microservice boundaries
+- **Server-Sent Events (SSE)**: Real-time updates with reconnection strategies
+- **WebSocket Integration**: High-frequency data streaming for metrics
+- **Event Store Pattern**: Failed event recovery with exponential backoff
+
+### Real-time Communication Patterns
+- **Multi-Protocol Support**: SSE for audit logs, WebSocket for metrics
+- **Exponential Backoff**: Automatic reconnection with circuit breaker
+- **Event Filtering**: Client-side event stream filtering
+- **Event Buffering**: Client-side event replay capabilities
 
 ### Performance Patterns
 - **Lazy Loading**: Dynamic imports for code splitting
@@ -668,6 +723,8 @@ Creates batch payment invoices combining:
 - **Virtual Scrolling**: Large lists with react-window
 - **Connection Pooling**: Database connection reuse
 - **Queue Throttling**: Rate limiting for external APIs
+- **Database Query Optimization**: Composite indexes and generated columns
+- **Dual-Write Strategy**: Optimized reads via Algolia, writes to PostgreSQL/Firestore
 
 ### Security Patterns
 - **Defense in Depth**: Multiple layers of security
@@ -675,6 +732,14 @@ Creates batch payment invoices combining:
 - **Input Validation**: Zod schemas and class-validator
 - **Sanitization**: XSS prevention in user inputs
 - **Secure by Default**: Environment-based configuration
+- **Multi-Strategy Authentication**: Runtime provider selection
+- **Dynamic Permissions**: Role and group-based access control
+
+### Advanced Dependency Injection
+- **InversifyJS Container**: Singleton-scoped service registration
+- **Service Abstractions**: Interface-based programming
+- **Cross-Module DI**: Dependency injection across module boundaries
+- **Circular Dependency Resolution**: Proper handling of complex dependencies
 
 ### Testing Patterns (Implied Architecture)
 - **Unit Testing**: Jest for isolated component testing
@@ -707,10 +772,65 @@ const StyledButton = styled(Button)<{ $variant: 'primary' | 'secondary' }>(
 // Usage: <StyledButton $variant="primary">
 ```
 
+### TypeORM Entity Patterns
+```typescript
+// Generated columns for computed values
+@Column({ 
+  type: 'varchar',
+  generatedType: 'STORED',
+  asExpression: `LOWER(email)`
+})
+emailLowercase: string;
+
+// Entity lifecycle hooks
+@BeforeInsert()
+@BeforeUpdate()
+normalizePhone() {
+  if (this.phone) {
+    this.phone = formatToE164(this.phone);
+  }
+}
+
+// Composite indexes with conditions
+@Index(['vendorId', 'status'], { where: 'status != completed' })
+```
+
+### Custom React Hook Patterns
+```typescript
+// Dynamic permissions hook
+const { checkPermission } = useDynamicPermissions();
+if (checkPermission('admin.vendors.edit')) { /* ... */ }
+
+// Event stream with reconnection
+const { events } = useEventStream('/api/events', {
+  reconnectDelay: 1000,
+  maxReconnectAttempts: 5
+});
+
+// View-as supplier impersonation
+const { viewAsSupplier, setViewAs } = useViewAsSupplier();
+```
+
+### Event Store Implementation
+```typescript
+// Event correlation across services
+await eventStore.publish({
+  type: 'ORDER_CREATED',
+  correlationId: generateCorrelationId(),
+  data: orderData,
+  metadata: { userId, timestamp }
+});
+
+// Event replay for debugging
+const events = await eventStore.replay(correlationId);
+```
+
 ### Error Handling Patterns
 - Service-level: Try-catch with contextual logging
 - Middleware-level: Global error handler
 - Queue-level: Retry strategies with dead letter queues
+- SSE reconnection: Exponential backoff with circuit breaker
+- Event store: Failed event recovery with retry mechanism
 
 ### Performance Optimizations
 - Connection pooling for databases
@@ -718,6 +838,75 @@ const StyledButton = styled(Button)<{ $variant: 'primary' | 'secondary' }>(
 - Queue concurrency limits
 - Redis caching through Bull
 - Lazy loading in frontend components
+- Generated database columns for computed values
+- Composite indexes for multi-column queries
+- Algolia for read-optimized search operations
+
+## Critical Architectural Decisions
+
+### Data Consistency Strategy
+- **Dual-Write Pattern**: All data writes go to both PostgreSQL (transactional) and Firestore (document)
+- **Read Optimization**: Algolia for search/listing, Firestore for single document CRUD
+- **Never Direct Algolia Writes**: Algolia is synced from Firestore, NEVER write directly
+- **Event Correlation**: Track operations across services with correlation IDs
+
+### Authentication & Authorization
+- **Multi-Strategy Support**: Runtime selection of auth provider (Firebase, Auth0, Cognito, etc.)
+- **Dynamic Permissions**: Permissions checked at runtime from database, not hardcoded
+- **View-As Pattern**: Global fetch interception for supplier impersonation
+- **Role-Based Access**: Combine user roles with group permissions
+
+### Real-time Communication
+- **SSE for System Events**: Audit logs, order updates, system notifications
+- **WebSocket for Metrics**: High-frequency data like Google Ads metrics
+- **Exponential Backoff**: All real-time connections implement retry with backoff
+- **Event Filtering**: Client-side filtering of event streams
+
+### Service Communication
+- **Admin → Operations**: Always through proxy API endpoints
+- **Operations → External**: Direct integration with third-party services
+- **Webhook Processing**: AWS Lambda → SQS → Operations service
+- **Event-Driven Updates**: EventEmitter for internal, webhooks for external
+
+### Database Design Principles
+- **Generated Columns**: Use database-computed fields for derived data
+- **Composite Indexes**: Multi-column indexes for complex queries
+- **Entity Hooks**: Normalize data in @BeforeInsert/@BeforeUpdate
+- **Snake Case Convention**: Database columns use snake_case, entities use camelCase
+
+### Dual-Database Architecture Pattern
+The platform implements a sophisticated dual-database pattern for optimal performance:
+
+```javascript
+// Write-through pattern ensures consistency
+class DatabaseSyncService {
+  async syncData(id, data) {
+    const pgTransaction = await pgClient.transaction();
+    try {
+      // 1. Write to PostgreSQL (transactional)
+      await this.writeToPostgres(data, pgTransaction);
+      
+      // 2. Write to Firestore (document)
+      await this.writeToFirestore(data);
+      
+      // 3. Commit PostgreSQL
+      await pgTransaction.commit();
+      
+      // 4. Log sync success
+      await this.logSyncSuccess(id);
+    } catch (error) {
+      await pgTransaction.rollback();
+      await this.rollbackFirestore(id);
+      throw error;
+    }
+  }
+}
+```
+
+**When to use which database:**
+- **PostgreSQL**: Complex reporting, JOINs, time-series, financial calculations
+- **Firestore**: Real-time updates, document lookups, webhook processing
+- **Algolia**: Search and listing operations (READ-ONLY from Firestore sync)
 
 ## Development Workflow Memories
 
@@ -726,6 +915,9 @@ const StyledButton = styled(Button)<{ $variant: 'primary' | 'secondary' }>(
 - Never put Claude in commit messages
 - Each subdirectory is a separate Git repository
 - Use descriptive commit messages focusing on what changed
+- Always run typecheck and lint before committing
+- Check for existing patterns before implementing new features
+- Use the TodoWrite tool for complex multi-step tasks
 - Never bypass authentication for "testing" - test properly with real authentication flows
 - When asking for data structures, ask the user directly for sample records from Algolia
 - Product images in Algolia can be in `gallery` field as array OR object with color keys
