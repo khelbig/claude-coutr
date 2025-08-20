@@ -922,4 +922,37 @@ class DatabaseSyncService {
 - When asking for data structures, ask the user directly for sample records from Algolia
 - Product images in Algolia can be in `gallery` field as array OR object with color keys
 
+## Critical Mistakes to Avoid (Learned the Hard Way)
+
+### Vendor System Architecture
+- **NEVER create "smart" APIs that serve both vendors and admins** - Keep them completely separate
+- **NEVER make routing decisions based on user role** - Vendors use `/dashboard/*`, admins use `/admin/*`, period
+- **ALWAYS follow existing patterns** - Look at how orders API works before implementing new vendor features
+- **Vendor APIs MUST always filter by vendor** - No exceptions, cannot return all data
+- **Don't try to be clever** - When user says keep things separate, KEEP THEM SEPARATE
+
+### Product and Variant Data Structure
+- **Products have `supplier_keys` (plural array)** - Because products can have multiple suppliers
+- **Variants have `supplier_key` (singular)** - Because each variant belongs to ONE supplier
+- **Variant search uses SKU text search** - NOT filtering by product_id (which doesn't exist in variants)
+- **Always check field names in Algolia** - Don't assume, verify the actual field names
+- **Use consistent field names** - If products use `supplier_keys`, check what variants actually use
+
+### Debugging Approach
+- **ALWAYS add logging to operations service FIRST** - That's where the business logic is
+- **Check the actual data structure** - Don't assume fields exist, verify them
+- **When something doesn't work, LOG THE RESPONSE** - Don't just push changes hoping they work
+- **Test before pushing** - Verify changes work before committing and pushing
+
+### API Design Patterns
+- **Match existing patterns** - Admin uses separate product and variants APIs? Do the same for vendors
+- **Keep consistent data flow** - Admin → Proxy API → Operations → Data stores
+- **Don't create new patterns** - Follow what already works in the codebase
+
+### Vendor Key Mismatches
+- **Vendor records can have mismatched keys** - e.g., vendor "vietti-shop" but products use "vietti"
+- **vendorKey field is in Firestore Suppliers collection** - This is what maps to product `supplier_keys`
+- **Superadmins can fix mismatches** - Via Business Information modal in vendor details
+- **Always check Algolia for the actual vendor** - Don't assume vendor exists, verify it
+
 This documentation represents the complete architectural knowledge of the Coutr e-commerce platform, ensuring consistent development practices across all repositories and services.
