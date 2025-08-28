@@ -956,3 +956,4 @@ class DatabaseSyncService {
 - **Always check Algolia for the actual vendor** - Don't assume vendor exists, verify it
 
 This documentation represents the complete architectural knowledge of the Coutr e-commerce platform, ensuring consistent development practices across all repositories and services.
+- the operations service does not run on port 8080 in local. NEVER EVER BRING THIS UP AGAIN
