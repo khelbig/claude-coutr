@@ -89,7 +89,11 @@
       "Bash(NODE_TLS_REJECT_UNAUTHORIZED=0 node -e \"\nconst { AppDataSource } = require(''./dist/core/database/typeorm.config.js'');\nconst { SalesChannel } = require(''./dist/entities/sales-channel.entity.js'');\n\nasync function checkChannels() {\n  await AppDataSource.initialize();\n  \n  try {\n    const channels = await AppDataSource\n      .getRepository(SalesChannel)\n      .find();\n    \n    console.log(''Sales Channels in Database:'');\n    channels.forEach(channel => {\n      console.log(''---'');\n      console.log(''ID:'', channel.id);\n      console.log(''Name:'', channel.name);\n      console.log(''Display Name:'', channel.displayName);\n      console.log(''Metrics:'', {\n        orders: channel.metrics.totalOrders,\n        revenue: channel.metrics.totalRevenue?.toFixed(2),\n        aov: channel.metrics.averageOrderValue?.toFixed(2)\n      });\n    });\n    \n    // Check which one is the Shop channel\n    const shopChannel = channels.find(ch => ch.id === ''3bff5c5d-e00b-48cd-9a3a-8e9f6f1a04ff'');\n    if (shopChannel) {\n      console.log(''\\n3bff5c5d-e00b-48cd-9a3a-8e9f6f1a04ff is:'', shopChannel.name, ''('', shopChannel.displayName, '')'');\n    }\n    \n  } catch (error) {\n    console.error(''Error:'', error);\n  } finally {\n    await AppDataSource.destroy();\n  }\n}\n\ncheckChannels().catch(console.error);\n\")",
       "Bash(NODE_TLS_REJECT_UNAUTHORIZED=0 node:*)",
       "Bash(git fetch:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(./fix-vendor-financial-reports.sh:*)",
+      "Bash(doctl databases:*)",
+      "Bash(timeout:*)",
+      "Read(//Users/kenthelbig/work/**)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
