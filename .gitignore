@@ -4,6 +4,7 @@
 /shopify/
 /firebase-catalog/
 /aws-orders/
+/admin-sample/
 
 # But keep .claude directory
 !/.claude/
