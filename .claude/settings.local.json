@@ -9,7 +9,12 @@
       "Bash(curl:*)",
       "Bash(node:*)",
       "Bash(git pull:*)",
-      "Bash(git stash push:*)"
+      "Bash(git stash push:*)",
+      "Bash(cat:*)",
+      "Bash(npm run typeorm:*)",
+      "Bash(yarn migration:run:*)",
+      "Bash(grep:*)",
+      "WebFetch(domain:shopify.dev)"
     ],
     "deny": [],
     "ask": [],
